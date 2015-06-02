@@ -1,5 +1,8 @@
 //Java Launcher Win32/64
 
+// version 1.1
+// supports passing command line options to java main()
+
 #include <windows.h>
 #include <io.h>
 #include <process.h>
@@ -30,6 +33,9 @@ int thread_id;
 STARTUPINFO si;
 PROCESS_INFORMATION pi;
 int tryOther = 1;
+char **g_argv;
+int g_argc;
+char module[MAX_PATH];
 
 /* Prototypes */
 void error(char *msg);
@@ -38,22 +44,33 @@ int JavaThread(void *ignore);
 
 /** Launches the other 32/64bits executable. */
 void loadOther() {
-  char exe[MAX_PATH];
+  char exe[MAX_PATH];  //c:\program files\app\file32.exe
   char opts[MAX_PATH + 128];
-  strcpy(exe, EXE);
+  int a;
+  strcpy(exe, module);
+  int sl = strlen(exe);
   switch (sizeof(void*)) {
     case 4:
-      strcat(exe, "64");
+      exe[sl-6] = '6';
+      exe[sl-5] = '4';
       break;
     case 8:
-      strcat(exe, "32");
+      exe[sl-6] = '3';
+      exe[sl-5] = '2';
       break;
   }
-  strcat(exe, ".exe");
   memset(&si, 0, sizeof(STARTUPINFO));
   si.cb = sizeof(STARTUPINFO);
-  strcpy(opts, exe);
-  strcat(opts, " -other");
+  opts[0] = 0;
+  strcat(opts, "\"");
+  strcat(opts, exe);
+  strcat(opts, "\"");
+  strcat(opts, " ---otherBits");
+  for(a=1;a<g_argc;a++) {
+    strcat(opts, " \"");
+    strcat(opts, g_argv[a]);
+    strcat(opts, "\"");
+  }
   tryOther = 0;
   if (!CreateProcess(exe, opts, NULL, NULL, FALSE, NORMAL_PRIORITY_CLASS, NULL, NULL, &si, &pi)) {
     error("Failed to execute other launcher");
@@ -71,6 +88,70 @@ void error(char *msg) {
   }
 }
 
+/** Converts array of C strings into array of Java strings */
+jobjectArray
+ConvertStringArray(JNIEnv *env, char **strv, int strc)
+{
+  jarray cls;
+  jarray ary;
+  jstring str;
+  int i;
+
+  cls = (*env)->FindClass(env, "java/lang/String");
+/*
+  if (cls == NULL) {
+    error("Unable to load java/lang/String class");
+    return NULL;
+  }
+*/
+  ary = (*env)->NewObjectArray(env, strc, cls, 0);
+  for (i = 0; i < strc; i++) {
+    str = (*env)->NewStringUTF(env, *strv++);
+    (*env)->SetObjectArrayElement(env, ary, i, str);
+    (*env)->DeleteLocalRef(env, str);
+  }
+  return ary;
+}
+
+char *DOption = "-Djava.class.path=";
+int noExpandClassPath = 0;
+
+/** Create class path adding module path to each element. */
+char *CreateClassPath() {
+  if (noExpandClassPath) {
+    return "-Djava.class.path=" CLASSPATH;
+  }
+  char *ClassPath;
+  int sl = strlen(CLASSPATH);
+  ClassPath = malloc(sl + 1);
+  strcpy(ClassPath, CLASSPATH);
+  char *LastPath = strrchr(module, '\\');
+  LastPath++;
+  char OrgChar = *LastPath;
+  *LastPath = 0;
+  int ml = strlen(module);
+  char *jar[32];
+  jar[0] = ClassPath;
+  int cnt = 1;
+  int a;
+  for(a=0;a<sl;a++) {
+    if (ClassPath[a] == ';') {
+      jar[cnt++] = ClassPath + a + 1;
+      ClassPath[a] = 0;
+    }
+  }
+  char *ExpandedClassPath = malloc(strlen(DOption) + sl + (ml * cnt) + 1);
+  ExpandedClassPath[0] = 0;
+  strcat(ExpandedClassPath, DOption);
+  for(a=0;a<cnt;a++) {
+    if (a > 0) strcat(ExpandedClassPath, ";");
+    strcat(ExpandedClassPath, module);
+    strcat(ExpandedClassPath, jar[a]);
+  }
+  *LastPath = OrgChar;
+  return ExpandedClassPath;
+}
+
 /** Continues loading the JVM in a new Thread. */
 int JavaThread(void *ignore) {
   JavaVM *jvm = NULL;
@@ -84,7 +165,7 @@ int JavaThread(void *ignore) {
   args.options = options;
   args.ignoreUnrecognized = JNI_FALSE;
 
-  options[0].optionString = "-Djava.class.path=" CLASSPATH;
+  options[0].optionString = CreateClassPath();
   options[0].extraInfo = NULL;
 
   if ((*CreateJavaVM)(&jvm, &env, &args) == -1) {
@@ -102,15 +183,29 @@ int JavaThread(void *ignore) {
     error("Unable to find main member");
     return -1;
   }
-  (*env)->CallStaticVoidMethod(env, cls, mid, NULL);
+  char **argv = g_argv;
+  int argc = g_argc;
+  //skip argv[0]
+  argv++;
+  argc--;
+  if (g_argc > 1 && stricmp(g_argv[1], "---otherBits") == 0) {
+    //skip special passed value
+    argv++;
+    argc--;
+  }
+  (*env)->CallStaticVoidMethod(env, cls, mid, ConvertStringArray(env, argv, argc));
   (*jvm)->DestroyJavaVM(jvm);  //waits till all threads are complete (Swing creates the EDT to keep Java alive until all windows are closed)
 }
 
 /** Main entry point. */
 int main(int argc, char **argv) {
-  if (argc > 1 && stricmp(argv[1], "-other") == 0) {
+  g_argv = argv;
+  g_argc = argc;
+  if (argc > 1 && stricmp(argv[1], "---otherBits") == 0) {
     tryOther = 0;
   }
+
+  GetModuleFileName(NULL, module, MAX_PATH);
 
   if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\JavaSoft\\Java Runtime Environment", 0, KEY_READ, &key) != 0) {
     error("Unable to open Java Registry");

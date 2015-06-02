@@ -3,8 +3,7 @@
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
   <property name="build" location="classes"/>
-  <import file="../../base.xml"/>
-  <property name="JPHONELITEVERSION" value="1.8.0"/>
+  <property name="JPHONELITEVERSION" value="1.8.1"/>
 
   <target name="depjars">
     <jar destfile="javaforce.jar">
@@ -143,7 +142,6 @@
       <fileset dir="../../..">
         <include name="jf/keys/readme.txt"/>
         <include name="jf/keys/build.xml"/>
-        <include name="jf/base.*"/>
         <include name="jf/license.txt"/>
         <include name="jf/jars/javaforce.jar"/>
         <include name="jf/jars/jna.jar"/>
@@ -175,7 +173,11 @@
   </target>
 
   <target name="javadoc" description="generate java documentation">
-    <javadoc sourcefiles="src" destdir="javadoc" classpath="javaforce.jar,jna.jar"/>
+    <javadoc sourcepath="src" sourcefiles="src/*.java" destdir="javadoc">
+      <classpath>
+        <fileset dir="../../jars" includes="*.jar"/>
+      </classpath>
+    </javadoc>
   </target>
 
   <target name="clean" description="deletes compiled files">

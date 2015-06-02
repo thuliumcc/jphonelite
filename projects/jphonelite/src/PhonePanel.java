@@ -1388,8 +1388,8 @@ Line Colors:
 
   private Codec getVideoCodec(int xline) {
     //returns first codec
-    if (lines[xline].localsdp == null) return null;
-    SDP.Stream vstream = lines[xline].localsdp.getFirstVideoStream();
+    if (lines[xline].sdp == null) return null;
+    SDP.Stream vstream = lines[xline].sdp.getFirstVideoStream();
     if (vstream == null) return null;
     if (vstream.codecs.length == 0) return null;
     Codec codec = vstream.codecs[0];

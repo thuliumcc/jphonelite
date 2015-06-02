@@ -1,4 +1,8 @@
 CHANGELOG:
+7-5-2014 : v1.8.1 released
+  - fixed video codec selection (works better with Asterisk now)
+    - I was using the offered codecs instead of the accepted ones
+      and by default VP8 is used which Asterisk doesn't support yet
 4-22-2014 : v1.8.0 released
   - new : a different ringtone can be assigned for inbound and outbound(ringback) tones. (user requested feature)
 3-12-2014 : v1.7.1 released
