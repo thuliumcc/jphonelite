@@ -1,4 +1,6 @@
 CHANGELOG:
+4-7-2015 : v1.9.4 released
+  - fixed some memory leaks
 3-26-2015 : v1.9.3 released
   - added Online Help button to configure window (see ticket #25)
 2-9-2015 : v1.9.3 beta 1 (not released)
