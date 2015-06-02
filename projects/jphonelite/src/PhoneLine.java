@@ -37,7 +37,10 @@ public class PhoneLine {
 
   public boolean xfer,hld,dnd,cnf;
 
-  public short samples[] = new short[160];  //used in conference mode only
+  //used in conference mode only
+  public short samples[];
+  public short samples8[] = new short[160];
+  public short samples16[] = new short[320];
 
   //RFC 2833 - DTMF
   public char dtmf = 'x';

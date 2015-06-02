@@ -12,7 +12,8 @@ import javaforce.*;
 public class Record {
   private RandomAccessFile raf;
   private int length;
-  private byte buf8[] = new byte[160 * 2];
+  private byte buf8[] = new byte[882 * 2];
+  private static final int rate = 44100;
 
   public void open() {
     try {
@@ -47,8 +48,8 @@ public class Record {
     LE.setuint32(header, 16, 16);  //chunk size
     LE.setuint16(header, 20, 1);   //1=PCM
     LE.setuint16(header, 22, 1);   //1=mono
-    LE.setuint32(header, 24, 8000);  //freq
-    LE.setuint32(header, 28, 8000 * 2);  //byte rate
+    LE.setuint32(header, 24, rate);  //freq
+    LE.setuint32(header, 28, rate * 2);  //byte rate
     LE.setuint16(header, 32, 2);    //block align
     LE.setuint16(header, 34, 16);   //bits/sample
     header[36 + 0] = 'd';
@@ -64,20 +65,11 @@ public class Record {
     }
   }
 
-  //little endian format
-  private byte[] short2byte(short in[], byte out[]) {
-    for (int a = 0; a < 160; a++) {
-      out[a * 2] = (byte) (in[a] & 0xff);
-      out[a * 2 + 1] = (byte) (in[a] >>> 8);
-    }
-    return out;
-  }
-
   public void write(short buf[]) {
-    short2byte(buf, buf8);
+    LE.shortArray2byteArray(buf, buf8);
     try {raf.write(buf8);} catch (Exception e) {JFLog.log(e);}
-    length += 160;
-    if (length > (24 * 60 * 60 * 8000)) {  //24 hrs (1.3 GBs)
+    length += buf.length;
+    if (length > (12 * 60 * 60 * rate)) {  //12 hrs
       close();
       open();
     }

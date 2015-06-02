@@ -1,4 +1,11 @@
 CHANGELOG:
+7-8-2014 : v1.9.0 released
+  - new codec : G.722 wideband : 16Khz sampling rate @ 14bits/sample (64Kbps)
+    - with a different sampling rate I had to rewrite a lot of code to support different sampling rates.
+    - everything is now interpolated up to 44.1KHz internally (requires a bit more cpu power)
+    - JPL is now ready for more HD codecs
+      - although I've looked at some like G.711.1 and doing so would be very difficult
+        - do you remember your FFTs from university?
 7-5-2014 : v1.8.1 released
   - fixed video codec selection (works better with Asterisk now)
     - I was using the offered codecs instead of the accepted ones

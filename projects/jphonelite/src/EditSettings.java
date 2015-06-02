@@ -30,7 +30,6 @@ public class EditSettings extends javax.swing.JDialog {
   private EditSettings(java.awt.Frame parent, boolean modal) {
     super(parent, modal);
     initComponents();
-    tabs.remove(obsoletePanel);
     JF.assignHotKey(this, bCancel, KeyEvent.VK_ESCAPE);
     JF.assignHotKey(this, bSave, KeyEvent.VK_ENTER);
     setPosition();
@@ -291,13 +290,6 @@ public class EditSettings extends javax.swing.JDialog {
     aboutTab = new javax.swing.JPanel();
     jScrollPane1 = new javax.swing.JScrollPane();
     about = new javax.swing.JTextArea();
-    obsoletePanel = new javax.swing.JPanel();
-    jLabel31 = new javax.swing.JLabel();
-    videoResolution = new javax.swing.JComboBox();
-    jLabel44 = new javax.swing.JLabel();
-    sampleRate = new javax.swing.JComboBox();
-    jLabel45 = new javax.swing.JLabel();
-    interpolation = new javax.swing.JComboBox();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     setTitle("Edit Settings");
@@ -1984,57 +1976,6 @@ public class EditSettings extends javax.swing.JDialog {
 
     tabs.addTab("About", aboutTab);
 
-    jLabel31.setText("Resolution");
-
-    videoResolution.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "..." }));
-
-    jLabel44.setText("Sample Rate:");
-
-    sampleRate.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "8000", "32000", "44100" }));
-
-    jLabel45.setText("Interpolation:");
-
-    interpolation.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Linear", "Cap Filter" }));
-
-    javax.swing.GroupLayout obsoletePanelLayout = new javax.swing.GroupLayout(obsoletePanel);
-    obsoletePanel.setLayout(obsoletePanelLayout);
-    obsoletePanelLayout.setHorizontalGroup(
-      obsoletePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(obsoletePanelLayout.createSequentialGroup()
-        .addContainerGap()
-        .addGroup(obsoletePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addGroup(obsoletePanelLayout.createSequentialGroup()
-            .addComponent(jLabel31)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(videoResolution, javax.swing.GroupLayout.PREFERRED_SIZE, 228, javax.swing.GroupLayout.PREFERRED_SIZE))
-          .addGroup(obsoletePanelLayout.createSequentialGroup()
-            .addComponent(jLabel44)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(sampleRate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(jLabel45)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(interpolation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        .addContainerGap(284, Short.MAX_VALUE))
-    );
-    obsoletePanelLayout.setVerticalGroup(
-      obsoletePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(obsoletePanelLayout.createSequentialGroup()
-        .addContainerGap()
-        .addGroup(obsoletePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-          .addComponent(jLabel44)
-          .addComponent(sampleRate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(jLabel45)
-          .addComponent(interpolation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-        .addGroup(obsoletePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-          .addComponent(jLabel31)
-          .addComponent(videoResolution, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(408, Short.MAX_VALUE))
-    );
-
-    tabs.addTab("obsolete", obsoletePanel);
-
     javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
@@ -2184,6 +2125,7 @@ public class EditSettings extends javax.swing.JDialog {
     l2disableVideo.setEnabled(state);
     l2secure.setEnabled(state);
     l2sip.setEnabled(state);
+    l2key.setEnabled(state);
   }//GEN-LAST:event_l2sameItemStateChanged
 
   private void l3sameItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_l3sameItemStateChanged
@@ -2195,6 +2137,7 @@ public class EditSettings extends javax.swing.JDialog {
     l3disableVideo.setEnabled(state);
     l3secure.setEnabled(state);
     l3sip.setEnabled(state);
+    l3key.setEnabled(state);
   }//GEN-LAST:event_l3sameItemStateChanged
 
   private void l4sameItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_l4sameItemStateChanged
@@ -2206,6 +2149,7 @@ public class EditSettings extends javax.swing.JDialog {
     l4disableVideo.setEnabled(state);
     l4secure.setEnabled(state);
     l4sip.setEnabled(state);
+    l4key.setEnabled(state);
   }//GEN-LAST:event_l4sameItemStateChanged
 
   private void l5sameItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_l5sameItemStateChanged
@@ -2217,6 +2161,7 @@ public class EditSettings extends javax.swing.JDialog {
     l5disableVideo.setEnabled(state);
     l5secure.setEnabled(state);
     l5sip.setEnabled(state);
+    l5key.setEnabled(state);
   }//GEN-LAST:event_l5sameItemStateChanged
 
   private void l6sameItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_l6sameItemStateChanged
@@ -2228,6 +2173,7 @@ public class EditSettings extends javax.swing.JDialog {
     l6disableVideo.setEnabled(state);
     l6secure.setEnabled(state);
     l6sip.setEnabled(state);
+    l6key.setEnabled(state);
   }//GEN-LAST:event_l6sameItemStateChanged
 
   private void genCertKeyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_genCertKeyActionPerformed
@@ -2273,7 +2219,6 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JPanel general;
   private javax.swing.JCheckBox hideWhenMinimized;
   private javax.swing.JComboBox inRingtone;
-  private javax.swing.JComboBox interpolation;
   private javax.swing.JLabel jLabel1;
   private javax.swing.JLabel jLabel10;
   private javax.swing.JLabel jLabel11;
@@ -2298,7 +2243,6 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JLabel jLabel29;
   private javax.swing.JLabel jLabel3;
   private javax.swing.JLabel jLabel30;
-  private javax.swing.JLabel jLabel31;
   private javax.swing.JLabel jLabel32;
   private javax.swing.JLabel jLabel33;
   private javax.swing.JLabel jLabel34;
@@ -2312,8 +2256,6 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JLabel jLabel41;
   private javax.swing.JLabel jLabel42;
   private javax.swing.JLabel jLabel43;
-  private javax.swing.JLabel jLabel44;
-  private javax.swing.JLabel jLabel45;
   private javax.swing.JLabel jLabel46;
   private javax.swing.JLabel jLabel47;
   private javax.swing.JLabel jLabel48;
@@ -2437,7 +2379,6 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JRadioButton natStun;
   private javax.swing.JRadioButton natTurn;
   private javax.swing.JTextField natUser;
-  private javax.swing.JPanel obsoletePanel;
   private javax.swing.JComboBox outRingtone;
   private javax.swing.JCheckBox received;
   private javax.swing.JCheckBox reinvite;
@@ -2447,7 +2388,6 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JCheckBox rtpRange;
   private javax.swing.JTextField rtpmax;
   private javax.swing.JTextField rtpmin;
-  private javax.swing.JComboBox sampleRate;
   private javax.swing.JButton selectDownloadPath;
   private javax.swing.JButton selectInRingtone;
   private javax.swing.JButton selectOutRingtone;
@@ -2469,7 +2409,6 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JComboBox videoDevice;
   private javax.swing.JSlider videoFPS;
   private javax.swing.ButtonGroup videoGroup;
-  private javax.swing.JComboBox videoResolution;
   private javax.swing.JButton visitWebSite;
   // End of variables declaration//GEN-END:variables
 
@@ -2695,6 +2634,7 @@ public class EditSettings extends javax.swing.JDialog {
     for(int a=0;a<codecs.length;a++) {
       if (codecs[a].equals("PCMU")) enabledAudioCodecsList.addElement("g711u");
       if (codecs[a].equals("PCMA")) enabledAudioCodecsList.addElement("g711a");
+      if (codecs[a].equals("G722")) enabledAudioCodecsList.addElement("g722");
       if (codecs[a].equals("G729")) enabledAudioCodecsList.addElement("g729a");
     }
     if (!Settings.current.hasAudioCodec(RTP.CODEC_G711u)) {
@@ -2702,6 +2642,9 @@ public class EditSettings extends javax.swing.JDialog {
     }
     if (!Settings.current.hasAudioCodec(RTP.CODEC_G711a)) {
       disabledAudioCodecsList.addElement("g711a");
+    }
+    if (!Settings.current.hasAudioCodec(RTP.CODEC_G722)) {
+      disabledAudioCodecsList.addElement("g722");
     }
     if (!Settings.current.hasAudioCodec(RTP.CODEC_G729a)) {
       disabledAudioCodecsList.addElement("g729a");
@@ -2746,14 +2689,6 @@ public class EditSettings extends javax.swing.JDialog {
 
     disableVideo.setSelected(!Settings.current.nativeVideo);
     useNativeVideo.setSelected(Settings.current.nativeVideo);
-
-    switch (Settings.current.sampleRate) {
-      case 8000: sampleRate.setSelectedIndex(0); break;
-      case 32000: sampleRate.setSelectedIndex(1); break;
-      case 44100: sampleRate.setSelectedIndex(2); break;
-    }
-
-    interpolation.setSelectedIndex(Settings.current.interpolation);
 
     switch (Settings.current.nat) {
       case 0: natNone.setSelected(true); break;
@@ -2896,19 +2831,11 @@ public class EditSettings extends javax.swing.JDialog {
     if (disableVideo.isSelected()) Settings.current.nativeVideo = false;
     if (useNativeVideo.isSelected()) Settings.current.nativeVideo = true;
 
-    switch (sampleRate.getSelectedIndex()) {
-      case 0: Settings.current.sampleRate = 8000; break;
-      case 1: Settings.current.sampleRate = 32000; break;
-      case 2: Settings.current.sampleRate = 44100; break;
-    }
-
-    Settings.current.interpolation = interpolation.getSelectedIndex();
-
     Settings.current.audioInput = (String)audioInput.getSelectedItem();
     Settings.current.audioOutput = (String)audioOutput.getSelectedItem();
 
     Settings.current.videoDevice = (String)videoDevice.getSelectedItem();
-    Settings.current.videoResolution = (String)videoResolution.getSelectedItem();
+//    Settings.current.videoResolution = (String)videoResolution.getSelectedItem();
 
     Settings.current.videoFPS = videoFPS.getValue();
 
@@ -2991,6 +2918,7 @@ public class EditSettings extends javax.swing.JDialog {
       String codec = (String)enabledAudioCodecsList.get(a);
       if (codec.equals("g711u")) sb.append("PCMU");
       if (codec.equals("g711a")) sb.append("PCMA");
+      if (codec.equals("g722")) sb.append("G722");
       if (codec.equals("g729a")) sb.append("G729");
     }
     return sb.toString();
@@ -3065,13 +2993,14 @@ public class EditSettings extends javax.swing.JDialog {
     //TODO : probe available resModes from api
     String resModes[] = { "<default>", "160x120", "320x240", "640x480" };
 
-    videoResolution.setModel(new javax.swing.DefaultComboBoxModel(resModes));
+/*    videoResolution.setModel(new javax.swing.DefaultComboBoxModel(resModes));
     for(int a=0;a<resModes.length;a++) {
       if (Settings.current.videoResolution.equalsIgnoreCase(resModes[a])) {
         videoResolution.setSelectedIndex(a);
         break;
       }
     }
+*/
 
     videoFPS.setValue(Settings.current.videoFPS);
   }

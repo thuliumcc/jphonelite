@@ -62,8 +62,6 @@ public class Settings {
   public String audioCodecs = "G729,PCMU";
   public String videoCodecs = "VP8,H264,H263-1998,H263-2000,JPEG";  //BUG:H263 incomplete
   public boolean reinvite = true;  //reinvite when returned multiple codecs
-  public int sampleRate = 8000;  //8000, 32000, 44100
-  public int interpolation = I_LINEAR;
   public boolean autohold = false;  //auto hold/unhold when switching between active lines
   public int volPlaySW = 75, volRecSW = 75;  //playback / recording vol levels (software)
   public int volPlayHW = 100, volRecHW = 100;  //playback / recording vol levels (hardware) (obsolete - removed in 1.1.0)
@@ -89,9 +87,6 @@ public class Settings {
   public static boolean isJavaScript = false;
   public static boolean hasFFMPEG = false;
 
-  public final static int I_LINEAR = 0;  //linear interpolation (sounds bad)
-  public final static int I_FILTER_CAP = 1;  //capacitor type filter ???
-
   private void initLines() {
     lines = new Line[6];
     for(int a=0;a<6;a++) lines[a] = new Line();
@@ -108,10 +103,9 @@ public class Settings {
       if (current.lines == null || current.lines.length != 6) throw new Exception("invalid config");
 
       //force settings
-      current.sampleRate = 8000;  //other rates not working yet (experimental)
-      current.interpolation = Settings.I_LINEAR;  //not working yet
       if (!current.hasAudioCodec(RTP.CODEC_G711a)
         && !current.hasAudioCodec(RTP.CODEC_G711u)
+        && !current.hasAudioCodec(RTP.CODEC_G722)
         && !current.hasAudioCodec(RTP.CODEC_G729a)
          )
       {

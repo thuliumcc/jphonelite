@@ -23,7 +23,7 @@ import javaforce.jna.*;
 
 public abstract class BasePhone extends javax.swing.JPanel implements SIPClientInterface, RTPInterface, ActionListener, KeyEventDispatcher {
 
-  public static String version = "1.8.1";
+  public static String version = "1.9.0";
 
   public void initBasePhone(GUI gui, WindowController wc) {
     JFLog.init(JF.getUserPath() + "/.jphone.log", true);
@@ -499,6 +499,10 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
         newAstream.addCodec(RTP.CODEC_G711a);
         break;
       }
+      if ((enabledCodecs[a].equals(RTP.CODEC_G722.name)) && (astream.hasCodec(RTP.CODEC_G722))) {
+        newAstream.addCodec(RTP.CODEC_G722);
+        break;
+      }
     }
 
     if (!pl.disableVideo && vstream != null) {
@@ -569,6 +573,7 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
       if (enabledCodecs[a].equals(RTP.CODEC_G729a.name)) stream.addCodec(RTP.CODEC_G729a);
       if (enabledCodecs[a].equals(RTP.CODEC_G711u.name)) stream.addCodec(RTP.CODEC_G711u);
       if (enabledCodecs[a].equals(RTP.CODEC_G711a.name)) stream.addCodec(RTP.CODEC_G711a);
+      if (enabledCodecs[a].equals(RTP.CODEC_G722.name)) stream.addCodec(RTP.CODEC_G722);
     }
     if (!pl.disableVideo && Settings.current.nativeVideo) {
       stream = sdp.addStream(SDP.Type.video);
@@ -610,7 +615,8 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
       SDP.Stream vstream = pl.sdp.getFirstVideoStream();
       if ( (!astream.hasCodec(RTP.CODEC_G729a) || !Settings.current.hasAudioCodec(RTP.CODEC_G729a))
         && (!astream.hasCodec(RTP.CODEC_G711u) || !Settings.current.hasAudioCodec(RTP.CODEC_G711u))
-        && (!astream.hasCodec(RTP.CODEC_G711a) || !Settings.current.hasAudioCodec(RTP.CODEC_G711a)) )
+        && (!astream.hasCodec(RTP.CODEC_G711a) || !Settings.current.hasAudioCodec(RTP.CODEC_G711a))
+        && (!astream.hasCodec(RTP.CODEC_G722) || !Settings.current.hasAudioCodec(RTP.CODEC_G722)) )
       {
         JFLog.log("err:callAccept() : No compatible audio codec offered");
         pl.sip.deny(pl.callid, "NO_COMPATIBLE_CODEC", 415);
@@ -717,7 +723,8 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
       JFLog.log("note:callInviteSuccess():remotertpport=" + astream.port + ",remoteVrtport=" + (vstream != null ? vstream.port : -1));
       if ( (!astream.hasCodec(RTP.CODEC_G729a) || !Settings.current.hasAudioCodec(RTP.CODEC_G729a))
         && (!astream.hasCodec(RTP.CODEC_G711u) || !Settings.current.hasAudioCodec(RTP.CODEC_G711u))
-        && (!astream.hasCodec(RTP.CODEC_G711a) || !Settings.current.hasAudioCodec(RTP.CODEC_G711a)) )
+        && (!astream.hasCodec(RTP.CODEC_G711a) || !Settings.current.hasAudioCodec(RTP.CODEC_G711a))
+        && (!astream.hasCodec(RTP.CODEC_G722) || !Settings.current.hasAudioCodec(RTP.CODEC_G722)) )
       {
         JFLog.log("err:callInviteSuccess() : No compatible audio codec returned");
         pl.sip.bye(pl.callid);
@@ -1062,6 +1069,7 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
     if (SIP.hasCodec(astream.codecs, RTP.CODEC_G729a)) acnt++;
     if (SIP.hasCodec(astream.codecs, RTP.CODEC_G711u)) acnt++;
     if (SIP.hasCodec(astream.codecs, RTP.CODEC_G711a)) acnt++;
+    if (SIP.hasCodec(astream.codecs, RTP.CODEC_G722)) acnt++;
 
     if (vstream != null) {
       if (SIP.hasCodec(vstream.codecs, RTP.CODEC_JPEG)) vcnt++;
