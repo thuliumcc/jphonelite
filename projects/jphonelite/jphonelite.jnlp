@@ -14,7 +14,7 @@
       <all-permissions/>
   </security>
   <resources>
-    <j2se version="1.5+"/>
+    <j2se version="1.6+"/>
     <jar href="jphonelite-signed.jar"/>
   </resources>
 </jnlp>

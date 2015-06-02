@@ -1,11 +1,11 @@
-jPhoneLite/1.9.2
+jPhoneLite/1.9.3
 
 Java VoIP Audio/Video SoftPhone (SIP)
 http://jphonelite.sourceforge.net
 License : LGPL
 
 Features : 6 lines, conference, hold, transfer, STUN/TURN/ICE, SRTP, DTLS.
-Codecs : g711u/a, g722, g729a, JPEG, H.263+/4, VP8
+Codecs : g711u/a, g722, g729a, JPEG, H.263+, H.264, VP8
 Video : Windows and Linux only.
 Conference Mode : Set for each line (up to all 6 lines)
 Blind-Transfer : Press XFR + enter target number + XFR

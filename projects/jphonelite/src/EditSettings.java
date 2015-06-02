@@ -290,6 +290,8 @@ public class EditSettings extends javax.swing.JDialog {
     aboutTab = new javax.swing.JPanel();
     jScrollPane1 = new javax.swing.JScrollPane();
     about = new javax.swing.JTextArea();
+    help = new javax.swing.JButton();
+    jButton1 = new javax.swing.JButton();
 
     setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
     setTitle("Edit Settings");
@@ -1973,6 +1975,20 @@ public class EditSettings extends javax.swing.JDialog {
 
     tabs.addTab("About", aboutTab);
 
+    help.setText("Online Help");
+    help.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        helpActionPerformed(evt);
+      }
+    });
+
+    jButton1.setText("Donate");
+    jButton1.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButton1ActionPerformed(evt);
+      }
+    });
+
     javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
@@ -1985,7 +2001,10 @@ public class EditSettings extends javax.swing.JDialog {
             .addComponent(bSave)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(bCancel)
-            .addGap(0, 0, Short.MAX_VALUE)))
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jButton1)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(help)))
         .addContainerGap())
     );
     layout.setVerticalGroup(
@@ -1996,7 +2015,9 @@ public class EditSettings extends javax.swing.JDialog {
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(bSave)
-          .addComponent(bCancel))
+          .addComponent(bCancel)
+          .addComponent(help)
+          .addComponent(jButton1))
         .addContainerGap())
     );
 
@@ -2185,6 +2206,14 @@ public class EditSettings extends javax.swing.JDialog {
     selectOutRingtoneFilename();
   }//GEN-LAST:event_selectOutRingtoneActionPerformed
 
+  private void helpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpActionPerformed
+    JF.openURL("http://javaforce.sourceforge.net/help.php");
+  }//GEN-LAST:event_helpActionPerformed
+
+  private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    JF.donate();
+  }//GEN-LAST:event_jButton1ActionPerformed
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JTextArea about;
   private javax.swing.JPanel aboutTab;
@@ -2215,8 +2244,10 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JCheckBox exitWhenClosed;
   private javax.swing.JButton genCertKey;
   private javax.swing.JPanel general;
+  private javax.swing.JButton help;
   private javax.swing.JCheckBox hideWhenMinimized;
   private javax.swing.JComboBox inRingtone;
+  private javax.swing.JButton jButton1;
   private javax.swing.JLabel jLabel1;
   private javax.swing.JLabel jLabel10;
   private javax.swing.JLabel jLabel11;

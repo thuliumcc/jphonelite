@@ -23,7 +23,7 @@ import javaforce.jna.*;
 
 public abstract class BasePhone extends javax.swing.JPanel implements SIPClientInterface, RTPInterface, ActionListener, KeyEventDispatcher {
 
-  public static String version = "1.9.2";
+  public static String version = "1.9.3";
 
   public void initBasePhone(GUI gui, WindowController wc) {
     JFLog.init(JF.getUserPath() + "/.jphone.log", true);
@@ -383,6 +383,7 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
     pl.incall = false;
     pl.talking = false;
     pl.hld = false;
+    pl.rtpStarted = false;
     if (pl.audioRTP != null) {
       pl.audioRTP.stop();
       pl.audioRTP = null;
@@ -605,9 +606,9 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
     return sdp;
   }
 
-  /** Accepts an inbound call on selected line. */
+  /** Starts RTP after negotiation is complete (inbound call only). */
 
-  public void callAccept() {
+  public boolean startRTPinbound() {
     PhoneLine pl = lines[line];
     try {
       SDP.Stream astream = pl.sdp.getFirstAudioStream();
@@ -620,20 +621,8 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
         JFLog.log("err:callAccept() : No compatible audio codec offered");
         pl.sip.deny(pl.callid, "NO_COMPATIBLE_CODEC", 415);
         onCancel(pl.sip, pl.callid, 415);
-        return;
+        return false;
       }
-      pl.to = pl.dial;
-      pl.audioRTP = new RTP();
-      if (!pl.audioRTP.init(this)) {
-        throw new Exception("RTP.init() failed");
-      }
-      pl.videoRTP = new RTP();
-      if (!pl.videoRTP.init(this)) {
-        throw new Exception("RTP.init() failed");
-      }
-      pl.videoRTP.setMTU(1500);
-      pl.localsdp = getLocalSDPAccept(pl);
-
       astream.setCodec(pl.localsdp.getFirstAudioStream().codecs[0]);
       if (vstream != null) {
         if (pl.localsdp.hasVideo()) {
@@ -695,30 +684,21 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
           throw new Exception("RTPChannel.start() failed");
         }
       }
-      pl.sip.accept(pl.callid, pl.localsdp);
-      pl.incall = true;
-      pl.ringing = false;
-      pl.ringback = false;
-      pl.incoming = false;
-      pl.talking = true;
-      pl.status = "Connected";
-      gui.updateLine();
-      updateIconTray();
+      pl.rtpStarted = true;
+      return true;
     } catch (Exception e) {
       JFLog.log(e);
       pl.sip.deny(pl.callid, "RTP_START_FAILED", 500);
       onCancel(pl.sip, pl.callid, 500);
+      return false;
     }
   }
 
-  /** Triggered when an outbound call (INVITE) was accepted. */
-
-  public boolean callInviteSuccess(int xline, SDP sdp) {
+  public boolean startRTPoutbound(int xline) {
     PhoneLine pl = lines[xline];
     try {
-      pl.sdp = sdp;
-      SDP.Stream astream = sdp.getFirstAudioStream();
-      SDP.Stream vstream = sdp.getFirstVideoStream();
+      SDP.Stream astream = pl.sdp.getFirstAudioStream();
+      SDP.Stream vstream = pl.sdp.getFirstVideoStream();
       JFLog.log("note:callInviteSuccess():remotertpport=" + astream.port + ",remoteVrtport=" + (vstream != null ? vstream.port : -1));
       if ( (!astream.hasCodec(RTP.CODEC_G729a) || !Settings.current.hasAudioCodec(RTP.CODEC_G729a))
         && (!astream.hasCodec(RTP.CODEC_G711u) || !Settings.current.hasAudioCodec(RTP.CODEC_G711u))
@@ -782,6 +762,63 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
           throw new Exception("RTPChannel.start() failed");
         }
       }
+      pl.rtpStarted = true;
+      return true;
+    } catch (Exception e) {
+      JFLog.log(e);
+      pl.sip.deny(pl.callid, "RTP_START_FAILED", 500);
+      onCancel(pl.sip, pl.callid, 500);
+      return false;
+    }
+  }
+
+
+  /** Accepts an inbound call on selected line. */
+
+  public void callAccept() {
+    PhoneLine pl = lines[line];
+    try {
+      pl.to = pl.dial;
+      pl.audioRTP = new RTP();
+      if (!pl.audioRTP.init(this)) {
+        throw new Exception("RTP.init() failed");
+      }
+      pl.videoRTP = new RTP();
+      if (!pl.videoRTP.init(this)) {
+        throw new Exception("RTP.init() failed");
+      }
+      pl.videoRTP.setMTU(1500);
+      if (pl.sdp != null) {
+        pl.localsdp = getLocalSDPAccept(pl);
+        if (!startRTPinbound()) return;
+      } else {
+        //INVITE did not include SDP so start SDP negotiation on this side
+        pl.localsdp = getLocalSDPInvite(pl);
+      }
+
+      pl.sip.accept(pl.callid, pl.localsdp);
+      pl.incall = true;
+      pl.ringing = false;
+      pl.ringback = false;
+      pl.incoming = false;
+      pl.talking = true;
+      pl.status = "Connected";
+      gui.updateLine();
+      updateIconTray();
+    } catch (Exception e) {
+      JFLog.log(e);
+      pl.sip.deny(pl.callid, "RTP_START_FAILED", 500);
+      onCancel(pl.sip, pl.callid, 500);
+    }
+  }
+
+  /** Triggered when an outbound call (INVITE) was accepted. */
+
+  public boolean callInviteSuccess(int xline, SDP sdp) {
+    PhoneLine pl = lines[xline];
+    try {
+      pl.sdp = sdp;
+      if (!startRTPoutbound(xline)) return false;
       if (Settings.current.aa) gui.selectLine(xline);
     } catch (Exception e) {
       JFLog.log(e);
@@ -1225,11 +1262,13 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
 
   public int onInvite(SIPClient sip, String callid, String fromid, String fromnumber, SDP sdp) {
     //NOTE : onInvite() can not change codecs (use SIP.reaccept() to do that)
-    for(int s=0;s<sdp.streams.length;s++) {
-      JFLog.log("onInvite : stream=" + sdp.streams[s].getType() + "," + sdp.streams[s].getMode() + "," + sdp.streams[s].content);
-      SDP.Stream stream = sdp.streams[s];
-      for(int c=0;c<stream.codecs.length;c++) {
-        JFLog.log("onInvite : codecs[] = " + stream.codecs[c].name + ":" + stream.codecs[c].id);
+    if (sdp != null) {
+      for(int s=0;s<sdp.streams.length;s++) {
+        JFLog.log("onInvite : stream=" + sdp.streams[s].getType() + "," + sdp.streams[s].getMode() + "," + sdp.streams[s].content);
+        SDP.Stream stream = sdp.streams[s];
+        for(int c=0;c<stream.codecs.length;c++) {
+          JFLog.log("onInvite : codecs[] = " + stream.codecs[c].name + ":" + stream.codecs[c].id);
+        }
       }
     }
     for(int a=0;a<6;a++) {
@@ -1238,6 +1277,10 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
         if (pl.callid.equals(callid)) {
           if (pl.talking) {
             //reINVITE
+            if (sdp == null) {
+              JFLog.log("onInvite: SDP null on reinvite");
+              return -1;  //TODO : send an error and drop call???
+            }
             pl.sdp = sdp;
             change(a, sdp);
             pl.localsdp = getLocalSDPAccept(pl);
@@ -1265,9 +1308,9 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
           return -1;  //do NOT send a reply
         } else {
           if (line == a) gui.updateLine();
+          updateIconTray();
+          return 180;  //reply RINGING
         }
-        updateIconTray();
-        return 180;  //reply RINGING
       }
     }
     return 486;  //reply BUSY
@@ -1369,6 +1412,22 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
       return;
     }
     JFLog.log("Warning : unknown NOTIFY type : " + event);
+  }
+
+  /** SIPClientInterface.onAck() : triggered when server send an ACK to jphonelite. */
+
+  public void onAck(SIPClient sip, String callid, SDP sdp) {
+    if (sdp == null) return;
+    for(int a=0;a<6;a++) {
+      PhoneLine pl = lines[a];
+      if (pl.sip == sip) {
+        if (!pl.rtpStarted) {
+          //RFC 3665 section 3.6 - ACK provides SDP instead of INVITE
+          pl.sdp = sdp;
+          startRTPinbound();
+        }
+      }
+    }
   }
 
   /** Processes keyboard input. */
@@ -1784,5 +1843,13 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
     } catch(Exception e) {
       JFLog.log(e);
     }
+  }
+  //see ticket # 23
+  public void pressDigit(String digit) {
+    pressDigit(digit.charAt(0));
+  }
+  //see ticket # 23
+  public void releaseDigit(String digit) {
+    releaseDigit(digit.charAt(0));
   }
 }

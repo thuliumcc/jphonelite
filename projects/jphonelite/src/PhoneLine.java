@@ -21,6 +21,7 @@ public class PhoneLine {
   public String user;
 
   public boolean incoming; //INVITE (inbound)
+  public boolean rtpStarted;  //RTP started
 
   public String dial = "", status = "";
   public String callid = "";  //Call-ID in SIP header (not callerid)
