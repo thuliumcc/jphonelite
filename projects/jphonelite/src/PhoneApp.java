@@ -1,4 +1,3 @@
-import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -31,7 +30,12 @@ public class PhoneApp extends JFrame implements WindowListener, WindowController
   }
 //interface WindowListener
   public void windowOpened(WindowEvent e) { }
-  public void windowClosing(WindowEvent e) { panel.unRegisterAll(); Settings.saveSettings(); System.exit(0); }
+  public void windowClosing(WindowEvent e) {
+    if (Settings.current.exitWhenClosed) {
+      panel.unRegisterAll(); Settings.saveSettings();
+      System.exit(0);
+    }
+  }
   public void windowClosed(WindowEvent e) { }
   public void windowIconified(WindowEvent e) {
     if (Settings.current.hideWhenMinimized) {

@@ -206,16 +206,18 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                              <Group type="102" alignment="0" attributes="0">
-                                  <Component id="jLabel51" min="-2" max="-2" attributes="0"/>
-                                  <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="sipExpires" max="32767" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                                  <Group type="102" alignment="0" attributes="0">
+                                      <Component id="jLabel51" min="-2" max="-2" attributes="0"/>
+                                      <EmptySpace max="-2" attributes="0"/>
+                                      <Component id="sipExpires" max="32767" attributes="0"/>
+                                  </Group>
+                                  <Component id="hideWhenMinimized" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="disableLogging" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="checkVersion" alignment="0" min="-2" max="-2" attributes="0"/>
                               </Group>
-                              <Component id="hideWhenMinimized" alignment="0" min="-2" max="-2" attributes="0"/>
-                              <Component id="disableLogging" alignment="0" min="-2" max="-2" attributes="0"/>
-                              <Component id="checkVersion" alignment="0" min="-2" max="-2" attributes="0"/>
-                              <Component id="reinvite" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="exitWhenClosed" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
@@ -223,6 +225,7 @@
                               <Component id="usePublish" min="-2" max="-2" attributes="0"/>
                               <Component id="smallerFont" min="-2" max="-2" attributes="0"/>
                               <Component id="autohold" min="-2" max="-2" attributes="0"/>
+                              <Component id="reinvite" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="32767" attributes="0"/>
                       </Group>
@@ -240,7 +243,7 @@
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="hideWhenMinimized" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
-                                  <Component id="reinvite" min="-2" max="-2" attributes="0"/>
+                                  <Component id="exitWhenClosed" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
                                   <Component id="usePublish" min="-2" max="-2" attributes="0"/>
@@ -256,6 +259,7 @@
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="jLabel51" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="sipExpires" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="reinvite" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="32767" attributes="0"/>
                       </Group>
@@ -294,12 +298,6 @@
                     <Property name="toolTipText" type="java.lang.String" value="Not supported by some PBX systems."/>
                   </Properties>
                 </Component>
-                <Component class="javax.swing.JCheckBox" name="reinvite">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Enable reinvites"/>
-                    <Property name="toolTipText" type="java.lang.String" value="Reinvites when callee returns multiple codecs."/>
-                  </Properties>
-                </Component>
                 <Component class="javax.swing.JCheckBox" name="autohold">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Auto Hold/Unhold"/>
@@ -315,6 +313,17 @@
                 <Component class="javax.swing.JTextField" name="sipExpires">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="3600"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JCheckBox" name="exitWhenClosed">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Exit when closed"/>
+                  </Properties>
+                </Component>
+                <Component class="javax.swing.JCheckBox" name="reinvite">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Enable reinvites"/>
+                    <Property name="toolTipText" type="java.lang.String" value="Reinvites when callee returns multiple codecs."/>
                   </Properties>
                 </Component>
               </SubComponents>

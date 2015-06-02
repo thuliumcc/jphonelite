@@ -88,10 +88,11 @@ public class EditSettings extends javax.swing.JDialog {
     alwaysOnTop = new javax.swing.JCheckBox();
     smallerFont = new javax.swing.JCheckBox();
     usePublish = new javax.swing.JCheckBox();
-    reinvite = new javax.swing.JCheckBox();
     autohold = new javax.swing.JCheckBox();
     jLabel51 = new javax.swing.JLabel();
     sipExpires = new javax.swing.JTextField();
+    exitWhenClosed = new javax.swing.JCheckBox();
+    reinvite = new javax.swing.JCheckBox();
     jPanel1 = new javax.swing.JPanel();
     jLabel21 = new javax.swing.JLabel();
     dndCodeOn = new javax.swing.JTextField();
@@ -365,9 +366,6 @@ public class EditSettings extends javax.swing.JDialog {
     usePublish.setText("Enable PUBLISH Presence");
     usePublish.setToolTipText("Not supported by some PBX systems.");
 
-    reinvite.setText("Enable reinvites");
-    reinvite.setToolTipText("Reinvites when callee returns multiple codecs.");
-
     autohold.setText("Auto Hold/Unhold");
     autohold.setToolTipText("Auto Hold/Unhold while switching between active lines.");
 
@@ -376,27 +374,34 @@ public class EditSettings extends javax.swing.JDialog {
 
     sipExpires.setText("3600");
 
+    exitWhenClosed.setText("Exit when closed");
+
+    reinvite.setText("Enable reinvites");
+    reinvite.setToolTipText("Reinvites when callee returns multiple codecs.");
+
     javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
     jPanel11.setLayout(jPanel11Layout);
     jPanel11Layout.setHorizontalGroup(
       jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(jPanel11Layout.createSequentialGroup()
         .addContainerGap()
-        .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-          .addGroup(jPanel11Layout.createSequentialGroup()
-            .addComponent(jLabel51)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(sipExpires))
-          .addComponent(hideWhenMinimized)
-          .addComponent(disableLogging)
-          .addComponent(checkVersion)
-          .addComponent(reinvite))
+        .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+            .addGroup(jPanel11Layout.createSequentialGroup()
+              .addComponent(jLabel51)
+              .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+              .addComponent(sipExpires))
+            .addComponent(hideWhenMinimized)
+            .addComponent(disableLogging)
+            .addComponent(checkVersion))
+          .addComponent(exitWhenClosed))
         .addGap(18, 18, 18)
         .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
           .addComponent(alwaysOnTop)
           .addComponent(usePublish)
           .addComponent(smallerFont)
-          .addComponent(autohold))
+          .addComponent(autohold)
+          .addComponent(reinvite))
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
     jPanel11Layout.setVerticalGroup(
@@ -411,7 +416,7 @@ public class EditSettings extends javax.swing.JDialog {
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(hideWhenMinimized)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(reinvite))
+            .addComponent(exitWhenClosed))
           .addGroup(jPanel11Layout.createSequentialGroup()
             .addComponent(usePublish)
             .addGap(1, 1, 1)
@@ -423,7 +428,8 @@ public class EditSettings extends javax.swing.JDialog {
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel51)
-          .addComponent(sipExpires, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+          .addComponent(sipExpires, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(reinvite))
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
 
@@ -2215,6 +2221,7 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JPanel eKey;
   private javax.swing.JList enabled_audio_codecs;
   private javax.swing.JList enabled_video_codecs;
+  private javax.swing.JCheckBox exitWhenClosed;
   private javax.swing.JButton genCertKey;
   private javax.swing.JPanel general;
   private javax.swing.JCheckBox hideWhenMinimized;
@@ -2616,6 +2623,7 @@ public class EditSettings extends javax.swing.JDialog {
     checkVersion.setSelected(Settings.current.checkVersion);
     disableLogging.setSelected(Settings.current.disableLogging);
     hideWhenMinimized.setSelected(Settings.current.hideWhenMinimized);
+    exitWhenClosed.setSelected(Settings.current.exitWhenClosed);
     alwaysOnTop.setSelected(Settings.current.alwaysOnTop);
     keepAudioOpen.setSelected(Settings.current.keepAudioOpen);
     smallerFont.setSelected(Settings.current.smallerFont);
@@ -2817,6 +2825,7 @@ public class EditSettings extends javax.swing.JDialog {
     Settings.current.checkVersion = checkVersion.isSelected();
     Settings.current.disableLogging = disableLogging.isSelected();
     Settings.current.hideWhenMinimized = hideWhenMinimized.isSelected();
+    Settings.current.exitWhenClosed = exitWhenClosed.isSelected();
     Settings.current.alwaysOnTop = alwaysOnTop.isSelected();
     Settings.current.keepAudioOpen = keepAudioOpen.isSelected();
     Settings.current.smallerFont = smallerFont.isSelected();

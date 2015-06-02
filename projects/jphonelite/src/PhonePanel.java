@@ -949,11 +949,24 @@ public class PhonePanel extends BasePhone implements MeterController, GUI, Video
         exit = new MenuItem("Exit");
         exit.addActionListener(this);
         popup.add(exit);
-        if (JF.isWindows()) {
-          icon = new TrayIcon(ii[PIC_TRAY_16].getImage(), "jPhoneLite", popup);
+        Dimension size = tray.getTrayIconSize();
+        ImageIcon appicon = ii[PIC_TRAY];
+        JFImage scaled = new JFImage(size.width, size.height);
+        scaled.fill(0, 0, size.width, size.height, 0x00000000, true);  //fill with alpha transparent
+        if (false) {
+          //scaled image (looks bad sometimes)
+          scaled.getGraphics().drawImage(appicon.getImage()
+            , 0, 0, size.width, size.height
+            , 0, 0, appicon.getIconWidth(), appicon.getIconHeight()
+            , null);
         } else {
-          icon = new TrayIcon(ii[PIC_TRAY_24].getImage(), "jPhoneLite", popup);
+          //center image
+          scaled.getGraphics().drawImage(appicon.getImage()
+            , (size.width - appicon.getIconWidth()) / 2
+            , (size.height - appicon.getIconHeight()) / 2
+            , null);
         }
+        icon = new TrayIcon(scaled.getImage(), "jPhoneLite", popup);
         icon.addActionListener(this);
         try { tray.add(icon); } catch (Exception e) { JFLog.log(e); }
       }

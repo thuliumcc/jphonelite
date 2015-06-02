@@ -23,7 +23,7 @@ import javaforce.jna.*;
 
 public abstract class BasePhone extends javax.swing.JPanel implements SIPClientInterface, RTPInterface, ActionListener, KeyEventDispatcher {
 
-  public static String version = "1.9.0";
+  public static String version = "1.9.1";
 
   public void initBasePhone(GUI gui, WindowController wc) {
     JFLog.init(JF.getUserPath() + "/.jphone.log", true);
@@ -60,7 +60,7 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
     "swscale.png", "hwscale.png",
     "icon_open.png", "icon_closed.png", "icon_busy.png", "icon_idle.png", "icon_dnd.png",
     "labels1.png", "labels2.png",
-    "icon-24x24.png", "icon-16x16.png",
+    "trayicon.png",
     "call.png", "end.png",
     "call2.png", "end2.png",
     "logo.png", "video.png", "record.png"
@@ -83,15 +83,14 @@ public abstract class BasePhone extends javax.swing.JPanel implements SIPClientI
   public final int PIC_ICON_DND = 15;
   public final int PIC_LABELS1 = 16;
   public final int PIC_LABELS2 = 17;
-  public final int PIC_TRAY_24 = 18;
-  public final int PIC_TRAY_16 = 19;
-  public final int PIC_CALL = 20;
-  public final int PIC_END = 21;
-  public final int PIC_CALL2 = 22;
-  public final int PIC_END2 = 23;
-  public final int PIC_LOGO = 24;
-  public final int PIC_VIDEO = 25;
-  public final int PIC_RECORD = 26;
+  public final int PIC_TRAY = 18;
+  public final int PIC_CALL = 19;
+  public final int PIC_END = 20;
+  public final int PIC_CALL2 = 21;
+  public final int PIC_END2 = 22;
+  public final int PIC_LOGO = 23;
+  public final int PIC_VIDEO = 24;
+  public final int PIC_RECORD = 25;
   public int registerRetries;
   public SystemTray tray;
   public TrayIcon icon;

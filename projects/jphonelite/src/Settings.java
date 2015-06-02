@@ -46,6 +46,7 @@ public class Settings {
   public String audioInput = "<default>", audioOutput = "<default>";
   public boolean disableLogging = false;
   public boolean hideWhenMinimized = true;
+  public boolean exitWhenClosed = false;
   public boolean alwaysOnTop = false;
   public boolean keepAudioOpen = true;
   public String downloadPath = JF.getUserPath() + "/Downloads";
