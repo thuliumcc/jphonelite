@@ -659,6 +659,7 @@ public class PhonePanel extends BasePhone implements MeterController, GUI, Video
       dial.setText("");
       status.setText("");
       EditSettings.editSettings(null);
+      initDTLS();
       reset();
       cfg.setIcon(ii[PIC_GREY]);
     }//GEN-LAST:event_cfgActionPerformed

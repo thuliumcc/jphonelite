@@ -1,4 +1,7 @@
 CHANGELOG:
+2-1-2014 : v1.7.0 released
+  - new : SRTP key exchange thru DTLS (tested with jPBXlite/0.16 only)
+  - this should finish everything I have planned lately and jPhoneLite should quiet down for a while unless bugs are found
 1-31-2014 : v1.6.0 released
   - new : SIP signaling now supports TCP and TLS transports
     - with TLS you must configure Asterisk to not verify certificate: sip.conf add : tlsdontverifyserver=yes

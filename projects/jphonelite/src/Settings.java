@@ -20,7 +20,7 @@ public class Settings {
   public static class Line {
     public int same;  //0-5 (-1=disabled) (ignored for lines[0])
     public String user, auth, pass, host;
-    public boolean disableVideo, srtp;
+    public boolean disableVideo, srtp, dtls;
     public int transport;
     public Line() {
       same = 0;
@@ -30,6 +30,7 @@ public class Settings {
       host = new String();
       disableVideo = false;
       srtp = false;
+      dtls = false;
       transport = 0;  //0=UDP 1=TCP 2=TLS
     }
   }

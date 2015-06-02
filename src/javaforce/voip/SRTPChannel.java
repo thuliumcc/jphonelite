@@ -1,6 +1,6 @@
 package javaforce.voip;
 
-/** Secure RTP [*experimental*]
+/** Secure RTP
  *
  * @author pquiring
  *
@@ -9,7 +9,7 @@ package javaforce.voip;
  * RFCs:
  * http://tools.ietf.org/html/rfc3711 - SRTP
  * http://tools.ietf.org/html/rfc5764 - Using DTLS to exchange keys for SRTP
- * http://tools.ietf.org/html/rfc4568 - SDP w/ SRTP keys (old method before DTLS)
+ * http://tools.ietf.org/html/rfc4568 - Using SDP to exchange keys for SRTP (old method before DTLS)
  */
 
 import java.io.*;
@@ -34,16 +34,41 @@ public class SRTPChannel extends RTPChannel {
   private boolean dtls = false;
   private boolean dtlsServerMode = false;
   private boolean stunReceived = false;
+  private boolean dtlsReady = false;
   private SRTPContext srtp_in, srtp_out;
   private int _tailIn, _tailOut;
   private long _seqno = 0;  //must keep track of seqno beyond 16bits
 
+  private DatagramSocket dtlsSocket, rawSocket;
+  private DefaultTlsServer2 tlsServer;
+  private DefaultTlsClient2 tlsClient;
+  private DTLSTransport dtlsTransport;  //DTLS is actually never used to send/receive data (only key exchange)
+  private Worker worker;
+  private String local_iceufrag, local_icepwd;
+
+  private static DTLSServerProtocol dtlsServer;
+  private static DTLSClientProtocol dtlsClient;
+  private static InetAddress localhost;
+  private static org.bouncycastle.crypto.tls.Certificate dtlsCertChain;
+  private static AsymmetricKeyParameter dtlsPrivateKey;
+
+  private static final int KEY_LENGTH = 16;
+  private static final int SALT_LENGTH = 14;
+
+  private byte[] sharedSecret;
+  private byte[] remoteKey = new byte[KEY_LENGTH], remoteSalt = new byte[SALT_LENGTH+2];
+  private byte[] localKey = new byte[KEY_LENGTH], localSalt = new byte[SALT_LENGTH+2];
+
   public void writeRTP(byte data[], int off, int len) {
+    if (rtp.rawMode) {
+      super.writeRTP(data, off, len);
+      return;
+    }
     if (srtp_out == null) {
       if (!have_keys) return;  //not ready
       try {
         srtp_out = new SRTPContext();
-        srtp_out.setCrypto("AES_CM_128_HMAC_SHA1_80", serverKey, serverSalt);
+        srtp_out.setCrypto("AES_CM_128_HMAC_SHA1_80", localKey, localSalt);
         _tailOut = srtp_out.getAuthTail();
         srtp_out.deriveKeys(0);
       } catch (Exception e) {
@@ -56,9 +81,11 @@ public class SRTPChannel extends RTPChannel {
       int ssrc = BE.getuint32(data, off + 8);
 //      int stamp = BE.getuint32(data, off + 4);
       int seqno = BE.getuint16(data, off + 2);
-      if (stream.keyExchange == SDP.KeyExchange.SDP) {
+//      if (stream.keyExchange == SDP.KeyExchange.SDP) {
 //        srtp_out.deriveKeys(stamp);  //not used in RFC 5764 (RFC 3711:only needed if kdr != 0)
-      }
+//      }
+      _seqno &= 0xffff0000;
+      _seqno |= seqno;
       encrypt(payload, ssrc, _seqno++);
       byte packet[] = new byte[len + _tailOut];
       System.arraycopy(data, off, packet, 0, 12);
@@ -71,34 +98,36 @@ public class SRTPChannel extends RTPChannel {
   }
 
   /** Sets keys found in SDP used on this side of SRTP (not used in DTLS mode) */
-  public void setServerKeys(byte key[], byte salt[]) {
-    System.arraycopy(key, 0, serverKey, 0, 16);
-    System.arraycopy(salt, 0, serverSalt, 0, 14);
+  public void setLocalKeys(byte key[], byte salt[]) {
+    System.arraycopy(key, 0, localKey, 0, KEY_LENGTH);
+    System.arraycopy(salt, 0, localSalt, 0, SALT_LENGTH);
     have_keys = true;
   }
 
   /** Sets keys found in SDP used on other side of SRTP (not used in DTLS mode) */
-  public void setClientKeys(byte key[], byte salt[]) {
-    System.arraycopy(key, 0, clientKey, 0, 16);
-    printArray("client  key=", key, 0, 16);
-    System.arraycopy(salt, 0, clientSalt, 0, 14);
-    printArray("client salt=", salt, 0, 14);
+  public void setRemoteKeys(byte key[], byte salt[]) {
+    System.arraycopy(key, 0, remoteKey, 0, KEY_LENGTH);
+    System.arraycopy(salt, 0, remoteSalt, 0, SALT_LENGTH);
     have_keys = true;
   }
 
   /** Enables DTLS mode (otherwise you MUST call setServerKeys() AND setClientKeys() before calling start()). */
-  public void setDTLS(boolean server) {
+  public void setDTLS(boolean server, String local_iceufrag, String local_icepwd) {
     dtls = true;
     dtlsServerMode = server;
+    this.local_iceufrag = local_iceufrag;
+    this.local_icepwd = local_icepwd;
   }
 
   public boolean start() {
+    JFLog.log("SRTPChannel.start:dtls=" + dtls);
     if (!super.start()) return false;
+    if (rtp.rawMode) return true;
     if (!dtls) return have_keys;
-    //create a thread to do STUN/DTLS request
+    //create a thread to do STUN/DTLS requests
     new Thread() {
       public void run() {
-        while (!stunReceived) {
+        while (rtp.active && !stunReceived) {
           JF.sleep(500);
           Random r = new Random();
           byte request[] = new byte[1500];
@@ -120,7 +149,7 @@ public class SRTPChannel extends RTPChannel {
           bb.putLong(offset, id2);
           offset += 8;
 
-          String user = stream.sdp.iceufrag + ":" + "12345678";
+          String user = stream.sdp.iceufrag + ":" + local_iceufrag;
           int strlen = user.length();
           bb.putShort(offset, USERNAME);
           offset += 2;
@@ -150,7 +179,6 @@ public class SRTPChannel extends RTPChannel {
 
           bb.putShort(lengthOffset, (short)(offset - 20 + 24));  //patch length (24=MSG_INT)
 
-          JFLog.log("ice password=" + stream.sdp.icepwd);
           byte id[] = STUN.calcMsgIntegrity(request, offset, STUN.calcKey(stream.sdp.icepwd));
           strlen = id.length;
           bb.putShort(offset, MESSAGE_INTEGRITY);
@@ -187,13 +215,248 @@ public class SRTPChannel extends RTPChannel {
           }
         }
 
-        if (!dtlsServerMode) {
-          //TODO:DTLS client code (other side should do it for now)
+        //see https://github.com/bcgit/bc-java/tree/master/core/src/test/java/org/bouncycastle/crypto/tls/test
+
+        try {
+          localhost = InetAddress.getByName("localhost");
+          dtlsSocket = new DatagramSocket(RTP.getnextlocalrtpport());
+          rawSocket = new DatagramSocket(RTP.getnextlocalrtpport());
+          dtlsSocket.connect(localhost, rawSocket.getLocalPort());
+          rawSocket.connect(localhost, dtlsSocket.getLocalPort());
+        } catch (Exception e) {
+          JFLog.log(e);
+          return;
         }
+
+        worker = new Worker();
+        worker.start();
+
+        if (!dtlsServerMode) {
+          try {
+            dtlsClient = new DTLSClientProtocol(new SecureRandom());
+          } catch (Exception e) {
+            JFLog.log(e);
+            dtlsClient = null;
+            return;
+          }
+          tlsClient = new DefaultTlsClient2() {
+            protected TlsSession session;
+            public TlsSession getSessionToResume()
+            {
+              return this.session;
+            }
+
+            public ProtocolVersion getClientVersion() {
+              return ProtocolVersion.DTLSv12;
+            }
+
+            public ProtocolVersion getMinimumVersion() {
+              return ProtocolVersion.DTLSv10;
+            }
+
+            public Hashtable getClientExtensions() throws IOException {
+              //see : http://bouncy-castle.1462172.n4.nabble.com/DTLS-SRTP-with-bouncycastle-1-49-td4656286.html
+              Hashtable table = super.getClientExtensions();
+              if (table == null) table = new Hashtable();
+              int[] protectionProfiles = {
+                SRTPProtectionProfile.SRTP_AES128_CM_HMAC_SHA1_80  //this is the only one supported for now
+  //              SRTPProtectionProfile.SRTP_AES128_CM_HMAC_SHA1_32
+  //              SRTPProtectionProfile.SRTP_NULL_HMAC_SHA1_32
+  //              SRTPProtectionProfile.SRTP_NULL_HMAC_SHA1_80
+              };
+              byte mki[] = new byte[0];  //do not use mki
+              UseSRTPData srtpData = new UseSRTPData(protectionProfiles, mki);
+              TlsSRTPUtils.addUseSRTPExtension(table, srtpData);
+              return table;
+            }
+
+            public TlsAuthentication getAuthentication() throws IOException {
+              return new TlsAuthentication() {
+                public void notifyServerCertificate(org.bouncycastle.crypto.tls.Certificate serverCertificate)
+                    throws IOException
+                {
+                  //info only
+                }
+
+                public TlsCredentials getClientCredentials(CertificateRequest certificateRequest)
+                    throws IOException
+                {
+                  short[] certificateTypes = certificateRequest.getCertificateTypes();
+                  if (certificateTypes == null) return null;
+                  boolean ok = false;
+                  for(int a=0;a<certificateTypes.length;a++) {
+                    if (certificateTypes[a] == ClientCertificateType.rsa_sign) {
+                      ok = true;
+                      break;
+                    }
+                  }
+                  if (!ok) return null;
+
+                  SignatureAndHashAlgorithm signatureAndHashAlgorithm = null;
+                  Vector sigAlgs = certificateRequest.getSupportedSignatureAlgorithms();
+                  if (sigAlgs != null)
+                  {
+                    for (int i = 0; i < sigAlgs.size(); ++i)
+                    {
+                      SignatureAndHashAlgorithm sigAlg = (SignatureAndHashAlgorithm) sigAlgs.elementAt(i);
+                      if (sigAlg.getSignature() == SignatureAlgorithm.rsa)
+                      {
+                        signatureAndHashAlgorithm = sigAlg;
+                        break;
+                      }
+                    }
+
+                    if (signatureAndHashAlgorithm == null)
+                    {
+                      return null;
+                    }
+                  }
+
+                  return new DefaultTlsSignerCredentials(context, dtlsCertChain, dtlsPrivateKey, signatureAndHashAlgorithm);
+                }
+              };
+            }
+            public void notifyHandshakeComplete() throws IOException
+            {
+              JFLog.log("SRTPChannel:DTLS:Client:Handshake complete");
+              super.notifyHandshakeComplete();
+
+              TlsSession newSession = context.getResumableSession();
+              if (newSession != null)
+              {
+/*
+                byte[] newSessionID = newSession.getSessionID();
+                String hex = Hex.toHexString(newSessionID);
+
+                if (this.session != null && Arrays.areEqual(this.session.getSessionID(), newSessionID))
+                {
+                  System.out.println("Resumed session: " + hex);
+                }
+                else
+                {
+                  System.out.println("Established session: " + hex);
+                }
+*/
+                this.session = newSession;
+              }
+              getKeys();
+            }
+          };
+          new Thread() {
+            public void run() {
+              try {
+                JFLog.log("SRTPChannel:connecting to DTLS server");
+                dtlsTransport = dtlsClient.connect(tlsClient, new UDPTransport(dtlsSocket, 1500 - 20 - 8));
+              } catch (Exception e) {
+                JFLog.log(e);
+              }
+            }
+          }.start();
+        } else {
+          try {
+            dtlsServer = new DTLSServerProtocol(new SecureRandom());
+          } catch (Exception e) {
+            JFLog.log(e);
+            dtlsServer = null;
+            return;
+          }
+
+          try {
+            tlsServer = new DefaultTlsServer2() {
+              public void notifyClientCertificate(org.bouncycastle.crypto.tls.Certificate clientCertificate)
+                throws IOException
+              {
+                org.bouncycastle.asn1.x509.Certificate[] chain = clientCertificate.getCertificateList();
+    //            JFLog.log("Received client certificate chain of length " + chain.length);
+                for (int i = 0; i != chain.length; i++) {
+                  org.bouncycastle.asn1.x509.Certificate entry = chain[i];
+    //              JFLog.log("fingerprint:SHA-256 " + KeyMgmt.fingerprintSHA256(entry.getEncoded()) + " (" + entry.getSubject() + ")");
+    //              JFLog.log("cert length=" + entry.getEncoded().length);
+                }
+              }
+
+              protected ProtocolVersion getMaximumVersion() {
+                return ProtocolVersion.DTLSv12;
+              }
+
+              protected ProtocolVersion getMinimumVersion() {
+                return ProtocolVersion.DTLSv10;
+              }
+
+              protected TlsEncryptionCredentials getRSAEncryptionCredentials()
+                throws IOException
+              {
+                return new DefaultTlsEncryptionCredentials(context, dtlsCertChain, dtlsPrivateKey);
+              }
+
+              protected TlsSignerCredentials getRSASignerCredentials()
+                throws IOException
+              {
+                SignatureAndHashAlgorithm signatureAndHashAlgorithm = null;
+                Vector sigAlgs = supportedSignatureAlgorithms;
+                if (sigAlgs != null) {
+                  for (int i = 0; i < sigAlgs.size(); ++i) {
+                    SignatureAndHashAlgorithm sigAlg = (SignatureAndHashAlgorithm) sigAlgs.elementAt(i);
+                    if (sigAlg.getSignature() == SignatureAlgorithm.rsa) {
+                      signatureAndHashAlgorithm = sigAlg;
+                      break;
+                    }
+                  }
+
+                  if (signatureAndHashAlgorithm == null) {
+                    return null;
+                  }
+                }
+                return new DefaultTlsSignerCredentials(context, dtlsCertChain, dtlsPrivateKey, signatureAndHashAlgorithm);
+              }
+
+              public Hashtable getServerExtensions() throws IOException {
+                //see : http://bouncy-castle.1462172.n4.nabble.com/DTLS-SRTP-with-bouncycastle-1-49-td4656286.html
+                Hashtable table = super.getServerExtensions();
+                if (table == null) table = new Hashtable();
+                int[] protectionProfiles = {
+    // TODO : need to pick ONE that client offers
+                  SRTPProtectionProfile.SRTP_AES128_CM_HMAC_SHA1_80  //this is the only one supported for now
+    //              SRTPProtectionProfile.SRTP_AES128_CM_HMAC_SHA1_32
+    //              SRTPProtectionProfile.SRTP_NULL_HMAC_SHA1_32
+    //              SRTPProtectionProfile.SRTP_NULL_HMAC_SHA1_80
+                };
+                byte mki[] = new byte[0];  //should match client or use nothing
+                UseSRTPData srtpData = new UseSRTPData(protectionProfiles, mki);
+                TlsSRTPUtils.addUseSRTPExtension(table, srtpData);
+                return table;
+              }
+              public void notifyHandshakeComplete() throws IOException
+              {
+                JFLog.log("SRTPChannel:DTLS:Server:Handshake complete");
+                super.notifyHandshakeComplete();
+                getKeys();
+              }
+            };
+
+            new Thread() {
+              public void run() {
+                try {
+                  JFLog.log("SRTPChannel:accepting from DTLS client");
+                  dtlsTransport = dtlsServer.accept(tlsServer, new UDPTransport(dtlsSocket, 1500 - 20 - 8));
+                } catch (Exception e) {
+                  JFLog.log(e);
+                }
+              }
+            }.start();
+          } catch (Exception e) {
+            JFLog.log(e);
+            dtlsSocket = null;
+            rawSocket = null;
+            return;
+          }
+        }
+        dtlsReady = true;
       }
     }.start();
     return true;
   }
+
   private final static short BINDING_REQUEST = 0x0001;
 
   private final static short BINDING_RESPONSE = 0x0101;
@@ -227,6 +490,7 @@ public class SRTPChannel extends RTPChannel {
   }
 
   protected void processSTUN(byte data[], int off, int len) {
+    JFLog.log("SRTPChannel:received STUN request");
     //the only command supported is BINDING_REQUEST
     String username = null, flipped = null;
     ByteBuffer bb = ByteBuffer.wrap(data, off, len);
@@ -259,7 +523,7 @@ public class SRTPChannel extends RTPChannel {
           break;
         case MESSAGE_INTEGRITY:
           bb.putShort(lengthOffset, (short) (offset));  //patch length
-          byte correct[] = STUN.calcMsgIntegrity(data, offset - 4, STUN.calcKey("javaforce"));
+          byte correct[] = STUN.calcMsgIntegrity(data, offset - 4, STUN.calcKey(local_icepwd));
           byte supplied[] = Arrays.copyOfRange(data, offset, offset + 20);
           auth = Arrays.equals(correct, supplied);
           break;
@@ -319,7 +583,7 @@ public class SRTPChannel extends RTPChannel {
     }
 
     bb.putShort(lengthOffset, (short) (offset - 20 + 24));  //patch length
-    byte id[] = STUN.calcMsgIntegrity(stun, offset, STUN.calcKey("javaforce"));
+    byte id[] = STUN.calcMsgIntegrity(stun, offset, STUN.calcKey(local_icepwd));
     int strlen = id.length;
     bb.putShort(offset, MESSAGE_INTEGRITY);
     offset += 2;
@@ -344,12 +608,6 @@ public class SRTPChannel extends RTPChannel {
     }
   }
 
-  private static DTLSServerProtocol dtlsServer;
-  private static Object dtlsLock = new Object();
-  private static InetAddress localhost;
-  private static org.bouncycastle.crypto.tls.Certificate dtlsCertChain;
-  private static AsymmetricKeyParameter dtlsPrivateKey;
-
   public static boolean initDTLS(java.util.List<byte []> certChain, byte privateKey[], boolean pkRSA) {
     try {
       org.bouncycastle.asn1.x509.Certificate x509certs[] = new org.bouncycastle.asn1.x509.Certificate[certChain.size()];
@@ -372,139 +630,56 @@ public class SRTPChannel extends RTPChannel {
     }
   }
 
+  //the sharedSecret is the same on each side
+
   private class DefaultTlsServer2 extends DefaultTlsServer {
-    //TODO : call this once I know myself that it's available (for now I wait for other side to send first SRTP packet)
     public void getKeys() {
-      sharedSecret = context.exportKeyingMaterial(ExporterLabel.dtls_srtp, null, (KEY_LENGTH + SALT_LENGTH) * 2);
-//      printArray("secret=", sharedSecret, 0, sharedSecret.length);
+      try {
+        sharedSecret = context.exportKeyingMaterial(ExporterLabel.dtls_srtp, null, (KEY_LENGTH + SALT_LENGTH) * 2);
+        if (sharedSecret == null) throw new Exception("null keys");
+      } catch (Exception e) {
+        JFLog.log(e);
+        return;
+      }
+//      printArray("keys", sharedSecret, 0, sharedSecret.length);
       int offset = 0;
-      System.arraycopy(sharedSecret, offset, clientKey, 0, KEY_LENGTH);
+      System.arraycopy(sharedSecret, offset, remoteKey, 0, KEY_LENGTH);
       offset += KEY_LENGTH;
-      System.arraycopy(sharedSecret, offset, serverKey, 0, KEY_LENGTH);
+      System.arraycopy(sharedSecret, offset, localKey, 0, KEY_LENGTH);
       offset += KEY_LENGTH;
-      System.arraycopy(sharedSecret, offset, clientSalt, 0, SALT_LENGTH);
+      System.arraycopy(sharedSecret, offset, remoteSalt, 0, SALT_LENGTH);
       offset += SALT_LENGTH;
-      System.arraycopy(sharedSecret, offset, serverSalt, 0, SALT_LENGTH);
+      System.arraycopy(sharedSecret, offset, localSalt, 0, SALT_LENGTH);
       offset += SALT_LENGTH;
       have_keys = true;
     }
   }
 
-  private DatagramSocket dtlsSocket, rawSocket;
-  private DefaultTlsServer2 tlsServer;
-  private DTLSTransport dtlsTransport;
-  private Worker worker;
-
-  private byte[] sharedSecret;
-  private byte[] clientKey = new byte[KEY_LENGTH], clientSalt = new byte[SALT_LENGTH+2];
-  private byte[] serverKey = new byte[KEY_LENGTH], serverSalt = new byte[SALT_LENGTH+2];
-
-  private static final int KEY_LENGTH = 16;
-  private static final int SALT_LENGTH = 14;
-
-  protected void processDTLS(byte data[], int off, int len) {
-    ByteBuffer bb = ByteBuffer.wrap(data, off, len);
-    bb.order(ByteOrder.BIG_ENDIAN);
-    synchronized (dtlsLock) {
-      if (dtlsServer == null) {
-        try {
-          dtlsServer = new DTLSServerProtocol(new SecureRandom());
-          localhost = InetAddress.getByName("localhost");
-        } catch (Exception e) {
-          JFLog.log(e);
-          dtlsServer = null;
-          return;
-        }
-      }
-    }
-    if (dtlsSocket == null) {
+  private abstract class DefaultTlsClient2 extends DefaultTlsClient {
+    public void getKeys() {
       try {
-        tlsServer = new DefaultTlsServer2() {
-          public void notifyClientCertificate(org.bouncycastle.crypto.tls.Certificate clientCertificate)
-                  throws IOException {
-            org.bouncycastle.asn1.x509.Certificate[] chain = clientCertificate.getCertificateList();
-//            JFLog.log("Received client certificate chain of length " + chain.length);
-            for (int i = 0; i != chain.length; i++) {
-              org.bouncycastle.asn1.x509.Certificate entry = chain[i];
-//              JFLog.log("fingerprint:SHA-256 " + KeyMgmt.fingerprintSHA256(entry.getEncoded()) + " (" + entry.getSubject() + ")");
-//              JFLog.log("cert length=" + entry.getEncoded().length);
-            }
-          }
-
-          protected ProtocolVersion getMaximumVersion() {
-            return ProtocolVersion.DTLSv12;
-          }
-
-          protected ProtocolVersion getMinimumVersion() {
-            return ProtocolVersion.DTLSv10;
-          }
-
-          protected TlsEncryptionCredentials getRSAEncryptionCredentials()
-            throws IOException
-          {
-            return new DefaultTlsEncryptionCredentials(context, dtlsCertChain, dtlsPrivateKey);
-          }
-
-          protected TlsSignerCredentials getRSASignerCredentials()
-                  throws IOException {
-            SignatureAndHashAlgorithm signatureAndHashAlgorithm = null;
-            Vector sigAlgs = supportedSignatureAlgorithms;
-            if (sigAlgs != null) {
-              for (int i = 0; i < sigAlgs.size(); ++i) {
-                SignatureAndHashAlgorithm sigAlg = (SignatureAndHashAlgorithm) sigAlgs.elementAt(i);
-                if (sigAlg.getSignature() == SignatureAlgorithm.rsa) {
-                  signatureAndHashAlgorithm = sigAlg;
-                  break;
-                }
-              }
-
-              if (signatureAndHashAlgorithm == null) {
-                return null;
-              }
-            }
-            return new DefaultTlsSignerCredentials(context, dtlsCertChain, dtlsPrivateKey, signatureAndHashAlgorithm);
-          }
-
-          public Hashtable getServerExtensions() throws IOException {
-            //see : http://bouncy-castle.1462172.n4.nabble.com/DTLS-SRTP-with-bouncycastle-1-49-td4656286.html
-            Hashtable table = super.getServerExtensions();
-            if (table == null) table = new Hashtable();
-            int[] protectionProfiles = {
-// TODO : need to pick ONE that client offers
-              SRTPProtectionProfile.SRTP_AES128_CM_HMAC_SHA1_80  //this is the only one supported for now
-//              SRTPProtectionProfile.SRTP_AES128_CM_HMAC_SHA1_32
-//              SRTPProtectionProfile.SRTP_NULL_HMAC_SHA1_32
-//              SRTPProtectionProfile.SRTP_NULL_HMAC_SHA1_80
-            };
-            byte mki[] = new byte[0];  //should match client or use nothing
-            UseSRTPData srtpData = new UseSRTPData(protectionProfiles, mki);
-            TlsSRTPUtils.addUseSRTPExtension(table, srtpData);
-            return table;
-          }
-        };
-
-        dtlsSocket = new DatagramSocket(RTP.getnextlocalrtpport());
-        rawSocket = new DatagramSocket(RTP.getnextlocalrtpport());
-        dtlsSocket.connect(localhost, rawSocket.getLocalPort());
-        rawSocket.connect(localhost, dtlsSocket.getLocalPort());
-        new Thread() {
-          public void run() {
-            try {
-              dtlsTransport = dtlsServer.accept(tlsServer, new UDPTransport(dtlsSocket, 1500 - 20 - 8));
-            } catch (Exception e) {
-              JFLog.log(e);
-            }
-          }
-        }.start();
-        worker = new Worker();
-        worker.start();
+        sharedSecret = context.exportKeyingMaterial(ExporterLabel.dtls_srtp, null, (KEY_LENGTH + SALT_LENGTH) * 2);
+        if (sharedSecret == null) throw new Exception("null keys");
       } catch (Exception e) {
         JFLog.log(e);
-        dtlsSocket = null;
-        rawSocket = null;
         return;
       }
+//      printArray("keys", sharedSecret, 0, sharedSecret.length);
+      int offset = 0;
+      System.arraycopy(sharedSecret, offset, localKey, 0, KEY_LENGTH);
+      offset += KEY_LENGTH;
+      System.arraycopy(sharedSecret, offset, remoteKey, 0, KEY_LENGTH);
+      offset += KEY_LENGTH;
+      System.arraycopy(sharedSecret, offset, localSalt, 0, SALT_LENGTH);
+      offset += SALT_LENGTH;
+      System.arraycopy(sharedSecret, offset, remoteSalt, 0, SALT_LENGTH);
+      offset += SALT_LENGTH;
+      have_keys = true;
     }
+  }
+
+  protected void processDTLS(byte data[], int off, int len) {
+    if (!dtlsReady) return;  //not ready
     try {
       rawSocket.send(new DatagramPacket(data, off, len, localhost, dtlsSocket.getLocalPort()));
     } catch (Exception e) {
@@ -512,11 +687,10 @@ public class SRTPChannel extends RTPChannel {
     }
   }
 
-
+  /** Transfers DTLS packets from rawSocket to rtpSocket */
   private class Worker extends Thread {
     public void run() {
       try {
-        int pcnt = 0;
         byte data[] = new byte[1500];
         while (active) {
           DatagramPacket pack = new DatagramPacket(data, 1500);
@@ -528,12 +702,6 @@ public class SRTPChannel extends RTPChannel {
           } else {
             rtp.sock1.send(new DatagramPacket(data, off, len, InetAddress.getByName(stream.getIP()), stream.getPort()));
           }
-          if (!have_keys) {
-            pcnt++;
-            if (pcnt > 1) {
-              tlsServer.getKeys();
-            }
-          }
         }
       } catch (Exception e) {
         JFLog.log(e);
@@ -542,6 +710,10 @@ public class SRTPChannel extends RTPChannel {
   }
 
   protected void processRTP(byte data[], int off, int len) {
+    if (rtp.rawMode) {
+      rtp.iface.rtpPacket(this, data, off, len);
+      return;
+    }
     int firstByte = ((int)data[off]) & 0xff;
     //see http://tools.ietf.org/html/rfc5764#section-5
     if (firstByte == 0) {
@@ -557,17 +729,13 @@ public class SRTPChannel extends RTPChannel {
     if (firstByte > 127 && firstByte < 192) {
       //SRTP data
       if (!have_keys) {
-        if (dtls) {
-          tlsServer.getKeys();
-        } else {
-          JFLog.log("SRTPChannel:Error:Received SRTP data with no keys defined");
-          return;
-        }
+        JFLog.log("SRTPChannel:warn:received SRTP data but keys undefined");
+        return;
       }
       if (srtp_in == null) {
         try {
           srtp_in = new SRTPContext();
-          srtp_in.setCrypto("AES_CM_128_HMAC_SHA1_80", clientKey, clientSalt);
+          srtp_in.setCrypto("AES_CM_128_HMAC_SHA1_80", remoteKey, remoteSalt);
           _tailIn = srtp_in.getAuthTail();
           srtp_in.deriveKeys(0);
         } catch (Exception e) {
@@ -593,11 +761,13 @@ public class SRTPChannel extends RTPChannel {
 
   private void printArray(String msg, byte data[], int off, int len) {
     StringBuilder sb = new StringBuilder();
+    int sum = 0;  //crc kinda
     for(int a=0;a<len;a++) {
       sb.append(",");
       sb.append(Integer.toString(((int)data[off + a]) & 0xff, 16));
+      sum += data[off + a];
     }
-    JFLog.log(msg + "(" + len + ")=" + sb.toString());
+    JFLog.log(msg + "(" + len + ")=" + sb.toString() + "=" + sum);
   }
 
   private ByteBuffer getPepper(int ssrc, long idx) {
@@ -704,12 +874,14 @@ public class SRTPChannel extends RTPChannel {
 Data Flowcharts:
 
 RTP Flow (0x80):
-media <---> SRTPSecContext <---> rtpSocket
+media <---> SRTPContext <---> rtpSocket
 
 STUN Flow (0x00 or 0x01):
-stun <---> realSocket
+stun <---> rtpSocket
 
 DTLS Flow (*):
 dtlsSocket <---> rawSocket <---> rtpSocket
+
+NOTE:DTLS:caller=client callee=server
 
 */

@@ -469,4 +469,22 @@ public class RTP implements STUN.Listener {
   public static String getTurnIP() {
     return turnIP;
   }
+
+  public static String genIceufrag() {
+    StringBuilder sb = new StringBuilder();
+    Random r = new Random();
+    for(int a=0;a<16;a++) {
+      sb.append((char)('a' + r.nextInt(26)));
+    }
+    return sb.toString();
+  }
+
+  public static String genIcepwd() {
+    StringBuilder sb = new StringBuilder();
+    Random r = new Random();
+    for(int a=0;a<16;a++) {
+      sb.append((char)('a' + r.nextInt(26)));
+    }
+    return sb.toString();
+  }
 }

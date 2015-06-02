@@ -58,6 +58,7 @@ public class EditSettings extends javax.swing.JDialog {
     }
     bits.setText("Make sure you use the " + (Platform.is64Bit() ? "64" : "32") + "bit Codec Pack.");
     if (Settings.hasFFMPEG) download.setEnabled(false);
+    updateKeyStatus();
   }
 
   /** This method is called from within the constructor to
@@ -163,6 +164,8 @@ public class EditSettings extends javax.swing.JDialog {
     l1secure = new javax.swing.JCheckBox();
     jLabel29 = new javax.swing.JLabel();
     l1sip = new javax.swing.JComboBox();
+    jLabel56 = new javax.swing.JLabel();
+    l1key = new javax.swing.JComboBox();
     l2 = new javax.swing.JPanel();
     jLabel4 = new javax.swing.JLabel();
     l2user = new javax.swing.JTextField();
@@ -178,6 +181,8 @@ public class EditSettings extends javax.swing.JDialog {
     l2secure = new javax.swing.JCheckBox();
     jLabel37 = new javax.swing.JLabel();
     l2sip = new javax.swing.JComboBox();
+    jLabel57 = new javax.swing.JLabel();
+    l2key = new javax.swing.JComboBox();
     l3 = new javax.swing.JPanel();
     l3same = new javax.swing.JCheckBox();
     l3sameidx = new javax.swing.JComboBox();
@@ -193,6 +198,8 @@ public class EditSettings extends javax.swing.JDialog {
     l3secure = new javax.swing.JCheckBox();
     jLabel52 = new javax.swing.JLabel();
     l3sip = new javax.swing.JComboBox();
+    jLabel58 = new javax.swing.JLabel();
+    l3key = new javax.swing.JComboBox();
     l4 = new javax.swing.JPanel();
     l4same = new javax.swing.JCheckBox();
     l4sameidx = new javax.swing.JComboBox();
@@ -208,6 +215,8 @@ public class EditSettings extends javax.swing.JDialog {
     l4secure = new javax.swing.JCheckBox();
     jLabel53 = new javax.swing.JLabel();
     l4sip = new javax.swing.JComboBox();
+    jLabel59 = new javax.swing.JLabel();
+    l4key = new javax.swing.JComboBox();
     l5 = new javax.swing.JPanel();
     l5same = new javax.swing.JCheckBox();
     l5sameidx = new javax.swing.JComboBox();
@@ -223,6 +232,8 @@ public class EditSettings extends javax.swing.JDialog {
     l5secure = new javax.swing.JCheckBox();
     jLabel54 = new javax.swing.JLabel();
     l5sip = new javax.swing.JComboBox();
+    jLabel60 = new javax.swing.JLabel();
+    l5key = new javax.swing.JComboBox();
     l6 = new javax.swing.JPanel();
     l6same = new javax.swing.JCheckBox();
     l6sameidx = new javax.swing.JComboBox();
@@ -238,6 +249,8 @@ public class EditSettings extends javax.swing.JDialog {
     l6secure = new javax.swing.JCheckBox();
     jLabel55 = new javax.swing.JLabel();
     l6sip = new javax.swing.JComboBox();
+    jLabel61 = new javax.swing.JLabel();
+    l6key = new javax.swing.JComboBox();
     topology = new javax.swing.JPanel();
     jPanel21 = new javax.swing.JPanel();
     natNone = new javax.swing.JRadioButton();
@@ -262,6 +275,13 @@ public class EditSettings extends javax.swing.JDialog {
     rtpmin = new javax.swing.JTextField();
     jLabel48 = new javax.swing.JLabel();
     rtpmax = new javax.swing.JTextField();
+    eKey = new javax.swing.JPanel();
+    jLabel62 = new javax.swing.JLabel();
+    jLabel63 = new javax.swing.JLabel();
+    keyStatus = new javax.swing.JLabel();
+    genCertKey = new javax.swing.JButton();
+    jLabel64 = new javax.swing.JLabel();
+    dname = new javax.swing.JTextField();
     aboutTab = new javax.swing.JPanel();
     jScrollPane1 = new javax.swing.JScrollPane();
     about = new javax.swing.JTextArea();
@@ -897,9 +917,9 @@ public class EditSettings extends javax.swing.JDialog {
             .addContainerGap())))
     );
 
-    jLabel40.setText("NOTE: To use H.263/H.264/VP8 codecs you must download/install the Codec Pack");
+    jLabel40.setText("To use H.263/H.264/VP8 codecs you must download / install the Codec Pack");
 
-    download.setText("Download");
+    download.setText("Download / Install");
     download.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         downloadActionPerformed(evt);
@@ -959,7 +979,7 @@ public class EditSettings extends javax.swing.JDialog {
           .addComponent(jPanel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel19, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel18, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        .addContainerGap(143, Short.MAX_VALUE))
+        .addContainerGap(156, Short.MAX_VALUE))
     );
     videoLayout.setVerticalGroup(
       videoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -996,6 +1016,10 @@ public class EditSettings extends javax.swing.JDialog {
 
     l1sip.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "UDP", "TCP", "TLS" }));
 
+    jLabel56.setText("Encryption Key Exchange");
+
+    l1key.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "SDP", "DTLS" }));
+
     javax.swing.GroupLayout l1Layout = new javax.swing.GroupLayout(l1);
     l1.setLayout(l1Layout);
     l1Layout.setHorizontalGroup(
@@ -1022,7 +1046,11 @@ public class EditSettings extends javax.swing.JDialog {
               .addGroup(l1Layout.createSequentialGroup()
                 .addComponent(jLabel29)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(l1sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addComponent(l1sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+              .addGroup(l1Layout.createSequentialGroup()
+                .addComponent(jLabel56)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(l1key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGap(0, 0, Short.MAX_VALUE)))
         .addContainerGap())
     );
@@ -1053,7 +1081,11 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel29)
           .addComponent(l1sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(196, Short.MAX_VALUE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(l1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel56)
+          .addComponent(l1key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addContainerGap(170, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line1", l1);
@@ -1083,6 +1115,10 @@ public class EditSettings extends javax.swing.JDialog {
     jLabel37.setText("SIP Transport");
 
     l2sip.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "UDP", "TCP", "TLS" }));
+
+    jLabel57.setText("Encryption Key Exchange");
+
+    l2key.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "SDP", "DTLS" }));
 
     javax.swing.GroupLayout l2Layout = new javax.swing.GroupLayout(l2);
     l2.setLayout(l2Layout);
@@ -1114,7 +1150,11 @@ public class EditSettings extends javax.swing.JDialog {
               .addGroup(l2Layout.createSequentialGroup()
                 .addComponent(jLabel37)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(l2sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addComponent(l2sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+              .addGroup(l2Layout.createSequentialGroup()
+                .addComponent(jLabel57)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(l2key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGap(0, 0, Short.MAX_VALUE)))
         .addContainerGap())
     );
@@ -1149,7 +1189,11 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel37)
           .addComponent(l2sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(165, Short.MAX_VALUE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(l2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel57)
+          .addComponent(l2key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addContainerGap(139, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line2", l2);
@@ -1179,6 +1223,10 @@ public class EditSettings extends javax.swing.JDialog {
     jLabel52.setText("SIP Transport");
 
     l3sip.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "UDP", "TCP", "TLS" }));
+
+    jLabel58.setText("Encryption Key Exchange");
+
+    l3key.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "SDP", "DTLS" }));
 
     javax.swing.GroupLayout l3Layout = new javax.swing.GroupLayout(l3);
     l3.setLayout(l3Layout);
@@ -1210,7 +1258,11 @@ public class EditSettings extends javax.swing.JDialog {
               .addGroup(l3Layout.createSequentialGroup()
                 .addComponent(jLabel52)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(l3sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addComponent(l3sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+              .addGroup(l3Layout.createSequentialGroup()
+                .addComponent(jLabel58)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(l3key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGap(0, 0, Short.MAX_VALUE)))
         .addContainerGap())
     );
@@ -1245,7 +1297,11 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel52)
           .addComponent(l3sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(165, Short.MAX_VALUE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(l3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel58)
+          .addComponent(l3key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addContainerGap(139, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line3", l3);
@@ -1275,6 +1331,10 @@ public class EditSettings extends javax.swing.JDialog {
     jLabel53.setText("SIP Transport");
 
     l4sip.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "UDP", "TCP", "TLS" }));
+
+    jLabel59.setText("Encryption Key Exchange");
+
+    l4key.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "SDP", "DTLS" }));
 
     javax.swing.GroupLayout l4Layout = new javax.swing.GroupLayout(l4);
     l4.setLayout(l4Layout);
@@ -1306,7 +1366,11 @@ public class EditSettings extends javax.swing.JDialog {
               .addGroup(l4Layout.createSequentialGroup()
                 .addComponent(jLabel53)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(l4sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addComponent(l4sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+              .addGroup(l4Layout.createSequentialGroup()
+                .addComponent(jLabel59)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(l4key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGap(0, 0, Short.MAX_VALUE)))
         .addContainerGap())
     );
@@ -1341,7 +1405,11 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel53)
           .addComponent(l4sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(165, Short.MAX_VALUE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(l4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel59)
+          .addComponent(l4key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addContainerGap(139, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line4", l4);
@@ -1371,6 +1439,10 @@ public class EditSettings extends javax.swing.JDialog {
     jLabel54.setText("SIP Transport");
 
     l5sip.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "UDP", "TCP", "TLS" }));
+
+    jLabel60.setText("Encryption Key Exchange");
+
+    l5key.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "SDP", "DTLS" }));
 
     javax.swing.GroupLayout l5Layout = new javax.swing.GroupLayout(l5);
     l5.setLayout(l5Layout);
@@ -1402,7 +1474,11 @@ public class EditSettings extends javax.swing.JDialog {
               .addGroup(l5Layout.createSequentialGroup()
                 .addComponent(jLabel54)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(l5sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addComponent(l5sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+              .addGroup(l5Layout.createSequentialGroup()
+                .addComponent(jLabel60)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(l5key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGap(0, 0, Short.MAX_VALUE)))
         .addContainerGap())
     );
@@ -1437,7 +1513,11 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel54)
           .addComponent(l5sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(165, Short.MAX_VALUE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(l5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel60)
+          .addComponent(l5key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addContainerGap(139, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line5", l5);
@@ -1467,6 +1547,10 @@ public class EditSettings extends javax.swing.JDialog {
     jLabel55.setText("SIP Transport");
 
     l6sip.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "UDP", "TCP", "TLS" }));
+
+    jLabel61.setText("Encryption Key Exchange");
+
+    l6key.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "SDP", "DTLS" }));
 
     javax.swing.GroupLayout l6Layout = new javax.swing.GroupLayout(l6);
     l6.setLayout(l6Layout);
@@ -1498,7 +1582,11 @@ public class EditSettings extends javax.swing.JDialog {
               .addGroup(l6Layout.createSequentialGroup()
                 .addComponent(jLabel55)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(l6sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addComponent(l6sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+              .addGroup(l6Layout.createSequentialGroup()
+                .addComponent(jLabel61)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(l6key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
             .addGap(0, 0, Short.MAX_VALUE)))
         .addContainerGap())
     );
@@ -1533,7 +1621,11 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel55)
           .addComponent(l6sip, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(165, Short.MAX_VALUE))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(l6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel61)
+          .addComponent(l6key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addContainerGap(139, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line6", l6);
@@ -1739,6 +1831,65 @@ public class EditSettings extends javax.swing.JDialog {
     );
 
     tabs.addTab("Topology", topology);
+
+    jLabel62.setText("In order to use DTLS Key Exchange you must generate a Certificate / Key pair");
+
+    jLabel63.setText("Your current key is : ");
+
+    keyStatus.setText("???");
+
+    genCertKey.setText("Generate Self-Signed Cert/Key Pair");
+    genCertKey.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        genCertKeyActionPerformed(evt);
+      }
+    });
+
+    jLabel64.setText("dname");
+
+    dname.setText("CN=jphonelite.sourceforge.net, OU=user, O=jphonelite, C=CA");
+
+    javax.swing.GroupLayout eKeyLayout = new javax.swing.GroupLayout(eKey);
+    eKey.setLayout(eKeyLayout);
+    eKeyLayout.setHorizontalGroup(
+      eKeyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(eKeyLayout.createSequentialGroup()
+        .addContainerGap()
+        .addGroup(eKeyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(eKeyLayout.createSequentialGroup()
+            .addComponent(jLabel64)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(dname))
+          .addGroup(eKeyLayout.createSequentialGroup()
+            .addGroup(eKeyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+              .addComponent(jLabel62)
+              .addGroup(eKeyLayout.createSequentialGroup()
+                .addComponent(jLabel63)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(keyStatus))
+              .addComponent(genCertKey))
+            .addGap(0, 171, Short.MAX_VALUE)))
+        .addContainerGap())
+    );
+    eKeyLayout.setVerticalGroup(
+      eKeyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(eKeyLayout.createSequentialGroup()
+        .addContainerGap()
+        .addComponent(jLabel62)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(eKeyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel63)
+          .addComponent(keyStatus))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(genCertKey)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(eKeyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel64)
+          .addComponent(dname, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addContainerGap(325, Short.MAX_VALUE))
+    );
+
+    tabs.addTab("Keys", eKey);
 
     about.setColumns(20);
     about.setEditable(false);
@@ -2019,6 +2170,10 @@ public class EditSettings extends javax.swing.JDialog {
     l6sip.setEnabled(state);
   }//GEN-LAST:event_l6sameItemStateChanged
 
+  private void genCertKeyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_genCertKeyActionPerformed
+    genKeys();
+  }//GEN-LAST:event_genCertKeyActionPerformed
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JTextArea about;
   private javax.swing.JPanel aboutTab;
@@ -2038,12 +2193,15 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JRadioButton disableVideo;
   private javax.swing.JList disabled_audio_codecs;
   private javax.swing.JList disabled_video_codecs;
+  private javax.swing.JTextField dname;
   private javax.swing.JTextField dndCodeOff;
   private javax.swing.JTextField dndCodeOn;
   private javax.swing.JButton download;
   private javax.swing.JTextField downloadPath;
+  private javax.swing.JPanel eKey;
   private javax.swing.JList enabled_audio_codecs;
   private javax.swing.JList enabled_video_codecs;
+  private javax.swing.JButton genCertKey;
   private javax.swing.JPanel general;
   private javax.swing.JCheckBox hideWhenMinimized;
   private javax.swing.JComboBox interpolation;
@@ -2098,7 +2256,16 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JLabel jLabel53;
   private javax.swing.JLabel jLabel54;
   private javax.swing.JLabel jLabel55;
+  private javax.swing.JLabel jLabel56;
+  private javax.swing.JLabel jLabel57;
+  private javax.swing.JLabel jLabel58;
+  private javax.swing.JLabel jLabel59;
   private javax.swing.JLabel jLabel6;
+  private javax.swing.JLabel jLabel60;
+  private javax.swing.JLabel jLabel61;
+  private javax.swing.JLabel jLabel62;
+  private javax.swing.JLabel jLabel63;
+  private javax.swing.JLabel jLabel64;
   private javax.swing.JLabel jLabel7;
   private javax.swing.JLabel jLabel8;
   private javax.swing.JLabel jLabel9;
@@ -2120,10 +2287,12 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JScrollPane jScrollPane5;
   private javax.swing.JTabbedPane jTabbedPane1;
   private javax.swing.JCheckBox keepAudioOpen;
+  private javax.swing.JLabel keyStatus;
   private javax.swing.JPanel l1;
   private javax.swing.JTextField l1auth;
   private javax.swing.JCheckBox l1disableVideo;
   private javax.swing.JTextField l1host;
+  private javax.swing.JComboBox l1key;
   private javax.swing.JPasswordField l1pass;
   private javax.swing.JCheckBox l1secure;
   private javax.swing.JComboBox l1sip;
@@ -2132,6 +2301,7 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JTextField l2auth;
   private javax.swing.JCheckBox l2disableVideo;
   private javax.swing.JTextField l2host;
+  private javax.swing.JComboBox l2key;
   private javax.swing.JPasswordField l2pass;
   private javax.swing.JCheckBox l2same;
   private javax.swing.JComboBox l2sameidx;
@@ -2142,6 +2312,7 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JTextField l3auth;
   private javax.swing.JCheckBox l3disableVideo;
   private javax.swing.JTextField l3host;
+  private javax.swing.JComboBox l3key;
   private javax.swing.JPasswordField l3pass;
   private javax.swing.JCheckBox l3same;
   private javax.swing.JComboBox l3sameidx;
@@ -2152,6 +2323,7 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JTextField l4auth;
   private javax.swing.JCheckBox l4disableVideo;
   private javax.swing.JTextField l4host;
+  private javax.swing.JComboBox l4key;
   private javax.swing.JPasswordField l4pass;
   private javax.swing.JCheckBox l4same;
   private javax.swing.JComboBox l4sameidx;
@@ -2162,6 +2334,7 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JTextField l5auth;
   private javax.swing.JCheckBox l5disableVideo;
   private javax.swing.JTextField l5host;
+  private javax.swing.JComboBox l5key;
   private javax.swing.JPasswordField l5pass;
   private javax.swing.JCheckBox l5same;
   private javax.swing.JComboBox l5sameidx;
@@ -2172,6 +2345,7 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JTextField l6auth;
   private javax.swing.JCheckBox l6disableVideo;
   private javax.swing.JTextField l6host;
+  private javax.swing.JComboBox l6key;
   private javax.swing.JPasswordField l6pass;
   private javax.swing.JCheckBox l6same;
   private javax.swing.JComboBox l6sameidx;
@@ -2329,6 +2503,7 @@ public class EditSettings extends javax.swing.JDialog {
     l1disableVideo.setSelected(Settings.current.lines[0].disableVideo);
     l1secure.setSelected(Settings.current.lines[0].srtp);
     l1sip.setSelectedIndex(Settings.current.lines[0].transport);
+    l1key.setSelectedIndex(Settings.current.lines[0].dtls ? 1 : 0);
 
     l2user.setText(Settings.current.lines[1].user);
     l2auth.setText(Settings.current.lines[1].auth);
@@ -2338,6 +2513,7 @@ public class EditSettings extends javax.swing.JDialog {
     l2disableVideo.setSelected(Settings.current.lines[1].disableVideo);
     l2secure.setSelected(Settings.current.lines[1].srtp);
     l2sip.setSelectedIndex(Settings.current.lines[1].transport);
+    l2key.setSelectedIndex(Settings.current.lines[1].dtls ? 1 : 0);
     idx = Settings.current.lines[1].same;
     if (idx != -1) l2sameidx.setSelectedIndex((idx > 0 ? idx-1 : idx)); else l2sameidx.setSelectedIndex(0);
 
@@ -2349,6 +2525,7 @@ public class EditSettings extends javax.swing.JDialog {
     l3disableVideo.setSelected(Settings.current.lines[2].disableVideo);
     l3secure.setSelected(Settings.current.lines[2].srtp);
     l3sip.setSelectedIndex(Settings.current.lines[2].transport);
+    l3key.setSelectedIndex(Settings.current.lines[2].dtls ? 1 : 0);
     idx = Settings.current.lines[2].same;
     if (idx != -1) l3sameidx.setSelectedIndex((idx > 1 ? idx-1 : idx)); else l3sameidx.setSelectedIndex(0);
 
@@ -2360,6 +2537,7 @@ public class EditSettings extends javax.swing.JDialog {
     l4disableVideo.setSelected(Settings.current.lines[3].disableVideo);
     l4secure.setSelected(Settings.current.lines[3].srtp);
     l4sip.setSelectedIndex(Settings.current.lines[3].transport);
+    l4key.setSelectedIndex(Settings.current.lines[3].dtls ? 1 : 0);
     idx = Settings.current.lines[3].same;
     if (idx != -1) l4sameidx.setSelectedIndex((idx > 2 ? idx-1 : idx)); else l4sameidx.setSelectedIndex(0);
 
@@ -2371,6 +2549,7 @@ public class EditSettings extends javax.swing.JDialog {
     l5disableVideo.setSelected(Settings.current.lines[4].disableVideo);
     l5secure.setSelected(Settings.current.lines[4].srtp);
     l5sip.setSelectedIndex(Settings.current.lines[4].transport);
+    l5key.setSelectedIndex(Settings.current.lines[4].dtls ? 1 : 0);
     idx = Settings.current.lines[4].same;
     if (idx != -1) l5sameidx.setSelectedIndex((idx > 3 ? idx-1 : idx)); else l5sameidx.setSelectedIndex(0);
 
@@ -2382,6 +2561,7 @@ public class EditSettings extends javax.swing.JDialog {
     l6disableVideo.setSelected(Settings.current.lines[5].disableVideo);
     l6secure.setSelected(Settings.current.lines[5].srtp);
     l6sip.setSelectedIndex(Settings.current.lines[5].transport);
+    l6key.setSelectedIndex(Settings.current.lines[5].dtls ? 1 : 0);
     idx = Settings.current.lines[5].same;
     if (idx != -1) l6sameidx.setSelectedIndex(idx); else l6sameidx.setSelectedIndex(0);
 
@@ -2515,6 +2695,7 @@ public class EditSettings extends javax.swing.JDialog {
     Settings.current.lines[0].disableVideo = l1disableVideo.isSelected();
     Settings.current.lines[0].srtp = l1secure.isSelected();
     Settings.current.lines[0].transport = l1sip.getSelectedIndex();
+    Settings.current.lines[0].dtls = l1key.getSelectedIndex() == 1;
 
     Settings.current.lines[1].user = l2user.getText();
     Settings.current.lines[1].auth = l2auth.getText();
@@ -2523,6 +2704,7 @@ public class EditSettings extends javax.swing.JDialog {
     Settings.current.lines[1].disableVideo = l2disableVideo.isSelected();
     Settings.current.lines[1].srtp = l2secure.isSelected();
     Settings.current.lines[1].transport = l2sip.getSelectedIndex();
+    Settings.current.lines[1].dtls = l2key.getSelectedIndex() == 1;
     if (l2same.isSelected()) Settings.current.lines[1].same = l2sameidx.getSelectedIndex(); else Settings.current.lines[1].same = -1;
     if (Settings.current.lines[1].same > 0) Settings.current.lines[1].same++;
 
@@ -2533,6 +2715,7 @@ public class EditSettings extends javax.swing.JDialog {
     Settings.current.lines[2].disableVideo = l3disableVideo.isSelected();
     Settings.current.lines[2].srtp = l3secure.isSelected();
     Settings.current.lines[2].transport = l3sip.getSelectedIndex();
+    Settings.current.lines[2].dtls = l3key.getSelectedIndex() == 1;
     if (l3same.isSelected()) Settings.current.lines[2].same = l3sameidx.getSelectedIndex(); else Settings.current.lines[2].same = -1;
     if (Settings.current.lines[2].same > 1) Settings.current.lines[2].same++;
 
@@ -2543,6 +2726,7 @@ public class EditSettings extends javax.swing.JDialog {
     Settings.current.lines[3].disableVideo = l4disableVideo.isSelected();
     Settings.current.lines[3].srtp = l4secure.isSelected();
     Settings.current.lines[3].transport = l4sip.getSelectedIndex();
+    Settings.current.lines[3].dtls = l4key.getSelectedIndex() == 1;
     if (l4same.isSelected()) Settings.current.lines[3].same = l4sameidx.getSelectedIndex(); else Settings.current.lines[3].same = -1;
     if (Settings.current.lines[3].same > 2) Settings.current.lines[3].same++;
 
@@ -2553,6 +2737,7 @@ public class EditSettings extends javax.swing.JDialog {
     Settings.current.lines[4].disableVideo = l5disableVideo.isSelected();
     Settings.current.lines[4].srtp = l5secure.isSelected();
     Settings.current.lines[4].transport = l5sip.getSelectedIndex();
+    Settings.current.lines[4].dtls = l5key.getSelectedIndex() == 1;
     if (l5same.isSelected()) Settings.current.lines[4].same = l5sameidx.getSelectedIndex(); else Settings.current.lines[4].same = -1;
     if (Settings.current.lines[4].same > 3) Settings.current.lines[4].same++;
 
@@ -2563,6 +2748,7 @@ public class EditSettings extends javax.swing.JDialog {
     Settings.current.lines[5].disableVideo = l6disableVideo.isSelected();
     Settings.current.lines[5].srtp = l6secure.isSelected();
     Settings.current.lines[5].transport = l6sip.getSelectedIndex();
+    Settings.current.lines[5].dtls = l6key.getSelectedIndex() == 1;
     if (l6same.isSelected()) Settings.current.lines[5].same = l6sameidx.getSelectedIndex(); else Settings.current.lines[5].same = -1;
 
     Settings.current.downloadPath = downloadPath.getText();
@@ -2753,5 +2939,45 @@ public class EditSettings extends javax.swing.JDialog {
     }
 
     videoFPS.setValue(Settings.current.videoFPS);
+  }
+
+  private void updateKeyStatus() {
+    String fn = JF.getUserPath() + "/.jphone.key";
+    keyStatus.setText("???");
+    if (!new File(fn).exists()) {
+      keyStatus.setText("file not found");
+      return;
+    }
+    KeyMgmt key = new KeyMgmt();
+    try {
+      key.open(new FileInputStream(fn), "password".toCharArray());
+      if (key.getCRT("jphonelite") == null) {
+        keyStatus.setText("missing certificate");
+        return;
+      }
+      if (key.getKEY("jphonelite", "password".toCharArray()) == null) {
+        keyStatus.setText("missing private key");
+        return;
+      }
+      keyStatus.setText("valid");
+    } catch (FileNotFoundException e) {
+      keyStatus.setText("file not found");
+    } catch (Exception e) {
+      JFLog.log(e);
+      keyStatus.setText("invalid");
+    }
+  }
+
+  private void genKeys() {
+    if (KeyMgmt.keytool(new String[] {
+      "-genkey", "-debug", "-alias", "jphonelite", "-keypass", "password", "-storepass", "password",
+      "-keystore", JF.getUserPath() + "/.jphone.key", "-validity", "3650", "-dname", dname.getText(),
+      "-keyalg" , "RSA", "-keysize", "2048"
+    })) {
+      //"Generated self-signed SSL Certificate";
+    } else {
+      //"KeyTool Error";
+    }
+    updateKeyStatus();
   }
 }

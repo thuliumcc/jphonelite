@@ -51,7 +51,7 @@ public abstract class SIP {
         break;
       case TLS:
         if (server)
-          return false;  //transport = new SIPTLSTransportServer();  //TODO
+          transport = new SIPTLSTransportServer();
         else
           transport = new SIPTLSTransportClient();
         break;
@@ -1046,6 +1046,9 @@ public abstract class SIP {
       }
       if (hasCodec(stream.codecs, RTP.CODEC_VP8)) {
         content.append("a=rtpmap:" + getCodec(stream.codecs, RTP.CODEC_VP8).id + " VP8/90000\r\n");
+      }
+      if (stream.keyExchange == SDP.KeyExchange.DTLS) {
+        content.append("a=rtcp-mux");  //http://tools.ietf.org/html/rfc5761
       }
     }
     cd.sdp = content.toString();
