@@ -1,0 +1,5 @@
+<project name="base" basedir="." default="none">
+  <dirname property="imported.basedir" file="${ant.file.base}"/>
+  <!--make sure these versions match src/javaforce/JF.java.getVersion()-->
+  <property file="${imported.basedir}/base.properties"/>
+</project>

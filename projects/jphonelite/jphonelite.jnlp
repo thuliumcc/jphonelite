@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp codebase="http://jphonelite.sourceforge.net/" href="jphonelite.jnlp">
+  <application-desc main-class="PhoneApp"/>
+  <information>
+    <title>jphonelite</title>
+    <vendor>JavaForce</vendor>
+    <offline-allowed/>
+    <shortcut online="false">
+      <desktop/>
+      <menu submenu="VoIP"/>
+    </shortcut>
+  </information>
+  <security>
+      <all-permissions/>
+  </security>
+  <resources>
+    <j2se version="1.5+"/>
+    <jar href="jphonelite-signed.jar"/>
+  </resources>
+</jnlp>
