@@ -48,7 +48,7 @@ public class Settings {
   public boolean hideWhenMinimized = true;
   public boolean exitWhenClosed = false;
   public boolean alwaysOnTop = false;
-  public boolean keepAudioOpen = true;
+//  public boolean keepAudioOpen = true;  //obsolete
   public String downloadPath = JF.getUserPath() + "/Downloads";
   public boolean smallerFont = false;  //some JVMs have different fonts
   public String videoDevice = "<default>";

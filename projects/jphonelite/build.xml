@@ -3,7 +3,7 @@
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
   <property name="build" location="classes"/>
-  <property name="JPHONELITEVERSION" value="1.9.1"/>
+  <property name="JPHONELITEVERSION" value="1.9.2"/>
 
   <target name="depjars">
     <jar destfile="javaforce.jar">
@@ -130,7 +130,7 @@
         <include name="jphonelite/*.jnlp"/>
         <include name="jphonelite/readme.txt"/>
         <include name="jphonelite/jphonelite"/>
-        <include name="jphonelite/run.bat"/>
+        <include name="jphonelite/run.*"/>
       </fileset>
       <fileset dir="../.." includes="license.txt"/>
     </zip>
@@ -162,7 +162,7 @@
         <include name="jf/projects/jphonelite/*.html"/>
         <include name="jf/projects/jphonelite/*.php"/>
         <include name="jf/projects/jphonelite/*.xml"/>
-        <include name="jf/projects/jphonelite/run.bat"/>
+        <include name="jf/projects/jphonelite/run.*"/>
         <include name="jf/projects/jphonelite/jphonelite"/>
         <include name="jf/projects/jphonelite/nbproject/*.xml"/>
 

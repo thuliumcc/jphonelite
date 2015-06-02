@@ -31,7 +31,10 @@ public class Sound {
   private int volPlay = 100, volRec = 100;
   private boolean mute = false;
   private DTMF dtmf = new DTMF(44100);
-  private boolean playing = false;
+  private boolean active = false;
+  private int deactivateDelay;
+  private static final int deactivateDelayInit = 50 * 5;  //5 seconds
+  private int underBufferCount;
   private javaforce.voip.Wav inWav, outWav;
   private int speakerDelay = 0;
   private int sampleRate, sampleRate50, sampleRate50x2;
@@ -90,18 +93,18 @@ public class Sound {
     System.out.println("output=" + output + ",input=" + input);
     output.listDevices();
     input.listDevices();
+    active = true;
+    deactivateDelay = deactivateDelayInit;
+    underBufferCount = 0;
     if (!input.start(1, sampleRate, 16, sampleRate50x2, Settings.current.audioInput)) {
       JFLog.log("Input.start() failed");
       return false;
     }
-
-    if (Settings.current.keepAudioOpen) {
-      if (!output.start(1, sampleRate, 16, sampleRate50x2, Settings.current.audioOutput)) {
-        JFLog.log("Output.start() failed");
-        return false;
-      }
-      for(int a=0;a<2;a++) write(silence);  //prime output
+    if (!output.start(1, sampleRate, 16, sampleRate50x2, Settings.current.audioOutput)) {
+      JFLog.log("Output.start() failed");
+      return false;
     }
+    write(silence);  //prime output
     player = new Player();
     player.start();
     timer = new Timer();
@@ -131,16 +134,13 @@ public class Sound {
       record.close();
       record = null;
     }
-    if (Settings.current.keepAudioOpen) {
+    if (active) {
       output.stop();
-    } else {
-      if (playing) {
-        output.stop();
-        playing = false;
-      }
+      input.stop();
+      active = false;
     }
     mc.setMeterPlay(0);
-    input.stop();
+    mc.setMeterRec(0);
     inWav = null;
     outWav = null;
   }
@@ -237,7 +237,7 @@ public class Sound {
   /** Reads data from the audio system (input from mic). */
 
   private boolean read(short buf[]) {
-    input.read(buf);
+    if (!input.read(buf)) return false;
     scaleBufferVolume(buf, buf.length, volRec);
     int lvl = 0;
     for (int a = 0; a < buf.length; a++) {
@@ -258,33 +258,41 @@ public class Sound {
 
   public void process() {
     //20ms timer
-    //do playback
     if (timer == null) return;
     try {
+      //do playback
       int cc = 0;  //conf count
       byte encoded[];
-      if (!Settings.current.keepAudioOpen) {
-        if (!playing) {
-          for (int a = 0; a < 6; a++) {
-            if ((lines[a].talking) || (lines[a].ringing)) {
-              playing = true;
-              output.start(1, sampleRate, 16, sampleRate50x2, Settings.current.audioOutput);
-              write(silence);  //prime output
-              break;
-            }
+      if (!active) {
+        for (int a = 0; a < 6; a++) {
+          if ((lines[a].talking) || (lines[a].ringing) || (lines[a].dtmf != 'x')) {
+            active = true;
+            deactivateDelay = deactivateDelayInit;
+            underBufferCount = 0;
+            output.start(1, sampleRate, 16, sampleRate50x2, Settings.current.audioOutput);
+            write(silence);  //prime output
+            input.start(1, sampleRate, 16, sampleRate50x2, Settings.current.audioInput);
+            break;
+          }
+        }
+      } else {
+        int iuc = 0;  //in use count
+        for (int a = 0; a < 6; a++) {
+          if ((lines[a].talking) || (lines[a].ringing) || (lines[a].dtmf != 'x')) {
+            iuc++;
+          }
+        }
+        if (iuc == 0) {
+          deactivateDelay--;
+          if (deactivateDelay <= 0) {
+            active = false;
+            output.stop();
+            input.stop();
+            mc.setMeterPlay(0);
+            mc.setMeterRec(0);
           }
         } else {
-          int pc = 0;  //playing count
-          for (int a = 0; a < 6; a++) {
-            if ((lines[a].talking) || (lines[a].ringing)) {
-              pc++;
-            }
-          }
-          if (pc == 0) {
-            playing = false;
-            mc.setMeterPlay(0);
-            output.stop();
-          }
+          deactivateDelay = deactivateDelayInit;
         }
       }
       for (int a = 0; a < 6; a++) {
@@ -363,14 +371,22 @@ public class Sound {
           write(mixed);
         } else {
           if (inRinging || outRinging) mix(mixed, getRinging(), 11);
-          if ((playing) || (Settings.current.keepAudioOpen)) write(mixed);
+          if (active) write(mixed);
         }
       }
       if (record != null) System.arraycopy(mixed, 0, recording, 0, 882);
       //do recording
-      boolean readstatus = read(outdata);
-      if (!readstatus) JFLog.log("Sound:mic underbuffer");
-      if ((mute) || (!readstatus)) System.arraycopy(silence, 0, outdata, 0, 882);
+      if (!active) return;
+      if (!read(outdata)) {
+        underBufferCount++;
+        if (underBufferCount > 10) {  //a few is normal
+          JFLog.log("Sound:mic underbuffer");
+        }
+        System.arraycopy(silence, 0, outdata, 0, 882);
+      }
+      if (mute) {
+        System.arraycopy(silence, 0, outdata, 0, 882);
+      }
       for (int a = 0; a < 6; a++) {
         if ((lines[a].talking) && (!lines[a].hld)) {
           if (lines[a].ringback) {
@@ -409,7 +425,7 @@ public class Sound {
           lines[a].dtmf = 'x';
         }
       }
-      if (record != null) record.write(recording);  //file I/O - may need to move this out of 20ms timer
+      if (record != null) record.add(recording);
     } catch (Exception e) {
       JFLog.log(e);
     }

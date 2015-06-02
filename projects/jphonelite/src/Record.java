@@ -8,12 +8,16 @@ import java.io.*;
 import java.util.*;
 
 import javaforce.*;
+import javaforce.media.*;
 
-public class Record {
+public class Record extends Thread {
   private RandomAccessFile raf;
   private int length;
   private byte buf8[] = new byte[882 * 2];
   private static final int rate = 44100;
+  private AudioBuffer buffer = new AudioBuffer(44100, 1, 2);
+  private boolean active, done;
+  private Object lock = new Object();
 
   public void open() {
     try {
@@ -25,6 +29,8 @@ public class Record {
         , cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND));
       raf = new RandomAccessFile(fn, "rw");
       writeHeader();
+      active = true;
+      start();
     } catch (Exception e) {
       JFLog.log(e);
     }
@@ -65,7 +71,14 @@ public class Record {
     }
   }
 
-  public void write(short buf[]) {
+  public void add(short buf[]) {
+    buffer.add(buf, 0, buf.length);
+    synchronized(lock) {
+      lock.notify();
+    }
+  }
+
+  private void write(short buf[]) {
     LE.shortArray2byteArray(buf, buf8);
     try {raf.write(buf8);} catch (Exception e) {JFLog.log(e);}
     length += buf.length;
@@ -77,6 +90,13 @@ public class Record {
 
   public void close() {
     if (raf == null) return;
+    active = false;
+    while (!done) {
+      synchronized(lock) {
+        lock.notify();
+      }
+      JF.sleep(10);
+    }
     //patch header (length)
     writeHeader();
     try {
@@ -85,5 +105,20 @@ public class Record {
       JFLog.log(e);
     }
     raf = null;
+  }
+
+  public void run() {
+    short buf[] = new short[882];
+    while (active) {
+      synchronized(lock) {
+        if (buffer.size() < 882) {
+          try { lock.wait(); } catch (Exception e) {}
+        }
+        if (buffer.size() < 882) continue;
+      }
+      buffer.get(buf, 0, 882);
+      write(buf);
+    }
+    done = true;
   }
 }

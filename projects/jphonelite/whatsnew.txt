@@ -1,6 +1,11 @@
 CHANGELOG:
+10-25-2014 : v1.9.2 released
+  - removed 'Keep Audio Open' option
+    audio is now start()ed only when needed (both output and input)
+    this should keep audio synced better (see bug #22)
+  - the audio recording has been moved to a seperate thread
 9-15-2014 : v1.9.1 released
-  - new option : exit with closed
+  - new option : exit when closed
   - new tray icon (Windows 7 theme)
 7-8-2014 : v1.9.0 released
   - new codec : G.722 wideband : 16Khz sampling rate @ 14bits/sample (64Kbps)

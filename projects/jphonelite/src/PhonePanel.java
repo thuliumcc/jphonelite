@@ -1560,23 +1560,8 @@ Line Colors:
     Font largeFont = new java.awt.Font("Dialog", 0, large);
 
     //these components use three or more letter and require a smaller font
-    cfg.setFont(smallFont);
-    xfr.setFont(smallFont);
-    hld.setFont(smallFont);
-    dnd.setFont(smallFont);
-    cnf.setFont(smallFont);
-    mute.setFont(smallFont);
     clear.setFont(smallFont);
     //the remaining components are okay with the normal font
-    l1.setFont(largeFont);
-    l2.setFont(largeFont);
-    l3.setFont(largeFont);
-    l4.setFont(largeFont);
-    l5.setFont(largeFont);
-    l6.setFont(largeFont);
-    redial.setFont(largeFont);
-    aa.setFont(largeFont);
-    ac.setFont(largeFont);
     sidePanel.setFont(largeFont);
     addContact.setFont(largeFont);
     editContact.setFont(largeFont);

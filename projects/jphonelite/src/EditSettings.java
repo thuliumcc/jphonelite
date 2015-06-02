@@ -126,7 +126,6 @@ public class EditSettings extends javax.swing.JDialog {
     add_audio_codec = new javax.swing.JButton();
     remove_audio_codec = new javax.swing.JButton();
     jPanel17 = new javax.swing.JPanel();
-    keepAudioOpen = new javax.swing.JCheckBox();
     jLabel30 = new javax.swing.JLabel();
     downloadPath = new javax.swing.JTextField();
     selectDownloadPath = new javax.swing.JButton();
@@ -740,9 +739,6 @@ public class EditSettings extends javax.swing.JDialog {
 
     jPanel17.setBorder(javax.swing.BorderFactory.createTitledBorder("Options"));
 
-    keepAudioOpen.setText("Keep Audio Output Open");
-    keepAudioOpen.setToolTipText("Avoid pop sound each time output is enabled.");
-
     jLabel30.setText("Recording Path:");
 
     selectDownloadPath.setText("Select...");
@@ -758,12 +754,9 @@ public class EditSettings extends javax.swing.JDialog {
       jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(jPanel17Layout.createSequentialGroup()
         .addContainerGap()
-        .addGroup(jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addComponent(keepAudioOpen)
-          .addGroup(jPanel17Layout.createSequentialGroup()
-            .addComponent(jLabel30)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(downloadPath)))
+        .addComponent(jLabel30)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(downloadPath)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(selectDownloadPath)
         .addContainerGap())
@@ -772,8 +765,6 @@ public class EditSettings extends javax.swing.JDialog {
       jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(jPanel17Layout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(keepAudioOpen)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addGroup(jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel30)
           .addComponent(downloadPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2307,7 +2298,6 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JScrollPane jScrollPane4;
   private javax.swing.JScrollPane jScrollPane5;
   private javax.swing.JTabbedPane jTabbedPane1;
-  private javax.swing.JCheckBox keepAudioOpen;
   private javax.swing.JLabel keyStatus;
   private javax.swing.JPanel l1;
   private javax.swing.JTextField l1auth;
@@ -2625,7 +2615,7 @@ public class EditSettings extends javax.swing.JDialog {
     hideWhenMinimized.setSelected(Settings.current.hideWhenMinimized);
     exitWhenClosed.setSelected(Settings.current.exitWhenClosed);
     alwaysOnTop.setSelected(Settings.current.alwaysOnTop);
-    keepAudioOpen.setSelected(Settings.current.keepAudioOpen);
+//    keepAudioOpen.setSelected(Settings.current.keepAudioOpen);
     smallerFont.setSelected(Settings.current.smallerFont);
     usePublish.setSelected(Settings.current.usePublish);
     useNativeSound.setSelected(Settings.current.nativeSound);
@@ -2827,7 +2817,7 @@ public class EditSettings extends javax.swing.JDialog {
     Settings.current.hideWhenMinimized = hideWhenMinimized.isSelected();
     Settings.current.exitWhenClosed = exitWhenClosed.isSelected();
     Settings.current.alwaysOnTop = alwaysOnTop.isSelected();
-    Settings.current.keepAudioOpen = keepAudioOpen.isSelected();
+//    Settings.current.keepAudioOpen = keepAudioOpen.isSelected();
     Settings.current.smallerFont = smallerFont.isSelected();
     Settings.current.usePublish = usePublish.isSelected();
     Settings.current.reinvite = reinvite.isSelected();
