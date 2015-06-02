@@ -4,7 +4,7 @@
   <property name="src" location="src"/>
   <property name="build" location="classes"/>
   <import file="../../base.xml"/>
-  <property name="JPHONELITEVERSION" value="1.7.0"/>
+  <property name="JPHONELITEVERSION" value="1.7.1"/>
 
   <target name="depjars">
     <jar destfile="javaforce.jar">
@@ -38,7 +38,7 @@
   <target name="compile" depends="depjars" description="compile the source">
     <!-- Compile the java code from ${src} into ${build} -->
     <mkdir dir="${build}"/>
-    <javac srcdir="${src}" destdir="${build}" deprecation="true" target="1.5" source="1.5" debug="true">
+    <javac srcdir="${src}" destdir="${build}" deprecation="true" target="1.6" source="1.6" debug="true">
 <!--      <compilerarg value="-Xlint:unchecked"/>  -->  <!-- generates lots of annoying warnings -->
       <classpath path="javaforce.jar"/>
       <classpath path="jna.jar"/>

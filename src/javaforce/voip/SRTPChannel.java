@@ -742,15 +742,18 @@ public class SRTPChannel extends RTPChannel {
           JFLog.log(e);
         }
       }
-      byte payload[] = Arrays.copyOfRange(data, off + 12, off + len);
       int seqno = BE.getuint16(data, off + 2);
       int ssrc = BE.getuint32(data, off + 8);
+      long index = getIndex(seqno);
+      updateCounters(seqno, index);
+      if (checkAuth(data, len)) return;
+      if (checkForReplay(index)) return;
+      byte payload[] = Arrays.copyOfRange(data, off + 12, off + len);
       try {
-        decrypt(payload, ssrc, seqno);
+        decrypt(payload, ssrc, seqno, index);
       } catch (Exception e) {
         JFLog.log(e);
       }
-      updateCounters(seqno);
       System.arraycopy(payload, 0, data, off+12, payload.length);
       super.processRTP(data, off, len - _tailIn);
       return;
@@ -780,12 +783,12 @@ public class SRTPChannel extends RTPChannel {
     return pepper;
   }
 
-  private void decrypt(byte[] payload, int ssrc, int seqno) throws GeneralSecurityException {
+  private void decrypt(byte[] payload, int ssrc, int seqno, long index) throws GeneralSecurityException {
     ByteBuffer in = ByteBuffer.wrap(payload);
     // aes likes the buffer a multiple of 32 and longer than the input.
     int pl = (((payload.length / 32) + 2) * 32);
     ByteBuffer out = ByteBuffer.allocate(pl);
-    ByteBuffer pepper = getPepper(ssrc, getIndex(seqno));
+    ByteBuffer pepper = getPepper(ssrc, index);
     srtp_in.decipher(in, out, pepper);
     System.arraycopy(out.array(), 0, payload, 0, payload.length);
   }
@@ -799,7 +802,7 @@ public class SRTPChannel extends RTPChannel {
     System.arraycopy(out.array(), 0, payload, 0, payload.length);
   }
 
-  void appendAuth(byte[] packet, SRTPContext sc, int seqno) {
+  private void appendAuth(byte[] packet, SRTPContext sc, int seqno) {
     try {
       // strictly we might need to derive the keys here too -
       // since we might be doing auth but no crypt.
@@ -818,6 +821,58 @@ public class SRTPChannel extends RTPChannel {
       }
     } catch (Exception e) {
       JFLog.log(e);
+    }
+  }
+
+  private final static int SRTPWINDOWSIZE = 64;
+  private long[] _replay = new long[SRTPWINDOWSIZE];
+  private long _windowLeadingEdge = 0;
+
+  private boolean checkForReplay(long _index) {
+    if (_index < _windowLeadingEdge) {
+      // old packet....
+      if ((_windowLeadingEdge - _index) > SRTPWINDOWSIZE) {
+        JFLog.log("SRTPChannel:Replay:packet too old");
+        return true;  //replay
+      }
+      // in window but .... is it a replay ?
+      int tidx = (int) (_index % SRTPWINDOWSIZE);
+      if (_replay[tidx] == _index) {
+        JFLog.log("SRTPChannel:Replay:seen that packet");
+        return true;  //replay
+      }
+    }
+    return false;
+  }
+
+  private boolean checkAuth(byte[] packet, int plen) {
+    try {
+      srtp_in.deriveKeys(0/*_index*/);
+
+      Mac hmac = srtp_in.getAuthMac();
+
+      int alen = _tailIn;
+      int offs = plen - alen;
+      ByteBuffer m = ByteBuffer.allocate(offs + 4);
+      m.put(packet, 0, offs);
+      m.putInt((int) _roc);
+
+      byte[] auth = new byte[alen];
+      System.arraycopy(packet, offs, auth, 0, alen);
+      int mlen = (plen - 12) - alen;
+      m.position(0);
+      hmac.update(m);
+      byte[] mac = hmac.doFinal();
+
+      for (int i = 0; i < alen; i++) {
+        if (auth[i] != mac[i]) {
+          throw new Exception("SRTPChannel:not authorized byte " + i + " does not match");
+        }
+      }
+      return false;
+    } catch (Exception e) {
+      JFLog.log(e);
+      return true;
     }
   }
 
@@ -855,7 +910,17 @@ public class SRTPChannel extends RTPChannel {
     return ret;
   }
 
-  void updateCounters(int seqno) {
+  void updateCounters(int seqno, long index) {
+    //SRTPProtocolImpl
+    // note that we have seen it.
+    int tidx = (int) (index % SRTPWINDOWSIZE);
+    _replay[tidx] = index;
+    // and update the leading edge if needed.
+    if (index > _windowLeadingEdge) {
+        _windowLeadingEdge = index;
+    }
+
+    //RTPProtocolImpl
     // note that we have seen it.
     int diff = seqno - _s_l; // normally we expect this to be 1
     if (diff < Short.MIN_VALUE) {
@@ -865,8 +930,6 @@ public class SRTPChannel extends RTPChannel {
     }
     _s_l = seqno;
   }
-
-
 }
 
 /*

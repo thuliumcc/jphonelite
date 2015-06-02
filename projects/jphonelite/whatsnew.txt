@@ -1,4 +1,7 @@
 CHANGELOG:
+3-12-2014 : v1.7.1 released
+  - fix : Java8 compatible
+  - new : added checkAuth() and checkForReplay() for SRTP (added security)
 2-1-2014 : v1.7.0 released
   - new : SRTP key exchange thru DTLS (tested with jPBXlite/0.16 only)
   - this should finish everything I have planned lately and jPhoneLite should quiet down for a while unless bugs are found

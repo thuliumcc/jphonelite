@@ -144,7 +144,7 @@ public class DesktopCache implements monitordir.Listener {
         if (ppid > 0) return getDesktopFromPID(ppid);
         return null;
       }
-      JFLog.log("cmd for " + pid + "=" + cmd);  //test
+//      JFLog.log("cmd for " + pid + "=" + cmd);  //test
       return DesktopCache.getDesktopFromExec(cmd);
     } catch (Exception e) {
       JFLog.log(e);

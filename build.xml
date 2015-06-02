@@ -9,7 +9,7 @@
     <!-- Compile the java code from ${src} into ${build} -->
     <mkdir dir="${build}"/>
     <mkdir dir="jars"/>
-    <javac srcdir="${src}" destdir="${build}" target="1.5" source="1.5" debug="true">
+    <javac srcdir="${src}" destdir="${build}" target="1.6" source="1.6" debug="true">
       <compilerarg value="-Xlint:unchecked"/>
       <classpath>
         <fileset dir="jars" includes="*.jar"/>
@@ -68,6 +68,14 @@
     <chmod file="/usr/bin/jfuse-ftps" perm="+x"/>
     <copy file="bin/jfuse-sftp" todir="/usr/bin"/>
     <chmod file="/usr/bin/jfuse-sftp" perm="+x"/>
+    <copy file="bin/jfuse-zip" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jfuse-zip" perm="+x"/>
+    <copy file="bin/jfuse-iso" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jfuse-iso" perm="+x"/>
+    <copy file="bin/jfuse-cdfs" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jfuse-cdfs" perm="+x"/>
+    <copy file="bin/jfshare" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jfshare" perm="+x"/>
   </target>
 
   <target name="deb" description="create deb package">
@@ -82,6 +90,14 @@
       <arg value="javaforce.spec"/>
     </exec>
     <copy file="javaforce-${VERSION}-1.noarch.rpm" todir="repo/fedora"/>
+  </target>
+
+  <target name="par" description="create deb package">
+    <exec executable="jpar">
+      <arg value="create"/>
+      <arg value="javaforce-${VERSION}_all.par"/>
+    </exec>
+    <copy file="javaforce-${VERSION}_all.par" todir="repo/javaforce"/>
   </target>
 
   <target name="clean" description="deletes compiled files">

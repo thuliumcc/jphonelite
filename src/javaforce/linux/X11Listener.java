@@ -10,8 +10,6 @@ public interface X11Listener {
   public void trayIconAdded(int count);
   /** Triggered when tray icons are removed. count = new # of icons in the tray */
   public void trayIconRemoved(int count);
-  /** Triggered when a new top-level window is created */
-  public void windowAdded();
-  /** Triggered when a top-level window is destroyed */
-  public void windowRemoved();
+  /** Triggered when a new top-level window has changed */
+  public void windowsChanged();
 }

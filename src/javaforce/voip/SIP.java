@@ -622,7 +622,7 @@ public abstract class SIP {
           if (pipe != -1) {
             base64 = base64.substring(0, pipe);
           }
-          byte keys[] = Base64.decode(base64.getBytes());
+          byte keys[] = javaforce.Base64.decode(base64.getBytes());
           if (keys == null || keys.length != 30) {
             JFLog.log("a=crypto:bad keys(2)");
             continue;
@@ -998,7 +998,7 @@ public abstract class SIP {
           byte key_salt[] = new byte[16 + 14];
           System.arraycopy(keys.key, 0, key_salt, 0, 16);
           System.arraycopy(keys.salt, 0, key_salt, 16, 14);
-          String keystr = new String(Base64.encode(key_salt));
+          String keystr = new String(javaforce.Base64.encode(key_salt));
                                                //keys          | lifetime     | mki:length
           String ln = keys.crypto + " inline:" + keystr; // + "|2^20";  // + "|1:32";
           content.append("a=crypto:" + (c+1) + " ");

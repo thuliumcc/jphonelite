@@ -18,10 +18,21 @@ public class KeyMgmt {
 
   private KeyStore keyStore = null;
 
-  /** Executes keytool directly (make sure to include -debug option to prevent System.exit() being called) */
+  /** Executes keytool directly */
   public static boolean keytool(String args[]) {
+    ArrayList<String> cmd = new ArrayList();
     try {
-      sun.security.tools.KeyTool.main(args);
+//      sun.security.tools.KeyTool.main(args);  //no longer available in Java 8
+      if (JF.isWindows()) {
+        cmd.add(System.getProperty("java.home") + "\\bin\\keytool.exe");
+      } else {
+        cmd.add(System.getProperty("java.home") + "/bin/keytool");
+      }
+      for(int a=0;a<args.length;a++) {
+        cmd.add(args[a]);
+      }
+      Process p = Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+      p.waitFor();
       return true;
     } catch (Exception e) {
       JFLog.log(e);

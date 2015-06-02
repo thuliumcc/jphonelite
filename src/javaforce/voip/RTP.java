@@ -344,7 +344,7 @@ public class RTP implements STUN.Listener {
    * Returns default RTP channel.
    */
   public RTPChannel getDefaultChannel() {
-    if (channels.size() < 1) return null;
+    if (channels.size() == 0) return null;
     return channels.get(0);
   }
 

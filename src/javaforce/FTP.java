@@ -3,7 +3,6 @@ package javaforce;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import javax.net.*;
 import javax.net.ssl.*;
 
 /**
@@ -78,7 +77,7 @@ public class FTP {
     if (response[response.length - 1].startsWith("220")) {
       return true;
     }
-    disconnect();  //not valid SMTP site
+    disconnect();  //not valid FTP site
     return false;
   }
 

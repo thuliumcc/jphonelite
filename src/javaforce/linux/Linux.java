@@ -7,7 +7,6 @@ package javaforce.linux;
  */
 import java.util.*;
 import java.io.*;
-import java.awt.*;
 
 import com.sun.jna.*;
 import com.sun.jna.ptr.*;
@@ -246,7 +245,7 @@ public class Linux {
         setLabel((action.equals("install") ? "Installing " : "Removing ") + desc);
         ShellProcess sp = new ShellProcess();
         sp.removeEnvironmentVariable("TERM");  //prevent config dialogs
-        String output = sp.run(new String[]{"sudo", "-E", "openpty", "yum", "-y", action, pkg}, false);
+        String output = sp.run(new String[]{"sudo", "-E", "yum", "-y", action, pkg}, false);
         if (output == null) {
           setLabel("Failed to exec yum");
           JFLog.log("Failed to exec yum");
@@ -639,7 +638,7 @@ public class Linux {
     void XUnmapWindow(Pointer display, NativeLong window);
     void XRaiseWindow(Pointer display, NativeLong window);
     void XNextEvent(Pointer display, XEvent ev);
-    void XSelectInput(Pointer display, NativeLong window, NativeLong event_mask);
+    NativeLong XSelectInput(Pointer display, NativeLong window, NativeLong event_mask);
     void XMoveWindow(Pointer display, NativeLong window, int x, int y);
     void XMoveResizeWindow(Pointer display, NativeLong window, int x, int y, int width, int height);
     void XReparentWindow(Pointer display, NativeLong window, NativeLong parent, int x, int y);
@@ -684,7 +683,7 @@ public class Linux {
     public int send_event;  //Bool
     public Pointer display;
     public NativeLong window, root, subwindow;
-    public NativeLong time;  //???
+    public NativeLong time;
     public int x,y,x_root,y_root;
     public int state;
     public int keycode;
@@ -712,6 +711,7 @@ public class Linux {
   private static final int UnmapNotify = 18;
   private static final int MapNotify = 19;
   private static final int ReparentNotify = 21;
+  private static final int PropertyNotify = 28;
   private static final int StructureNotifyMask = (1 << 17);
   private static final int SubstructureNotifyMask = (1 << 19);
   private static final int PropertyChangeMask = (1 << 22);
@@ -783,6 +783,27 @@ public class Linux {
     }
   }
 
+  public static class XPropertyEvent extends Structure {
+    public int type;
+    public NativeLong serial;
+    public int send_event;  //Bool
+    public NativeLong display;
+    public NativeLong window;
+    public NativeLong atom;
+    public NativeLong time;
+    public int state;
+
+    @Override
+    protected java.util.List getFieldOrder() {
+      return Arrays.asList(new String[] {
+        "type", "serial", "send_event", "display", "window", "atom", "time", "state"
+      });
+    }
+    public XPropertyEvent(Pointer ptr) {
+      super(ptr);
+    }
+  }
+
   public static class XClassHint extends Structure {
     public Pointer res_name, res_class;
 
@@ -810,7 +831,7 @@ public class Linux {
     return x11 != null && pam != null && c != null;
   }
 
-  public static Object x11_get_id(Window w) {
+  public static Object x11_get_id(java.awt.Window w) {
     return new NativeLong(Native.getWindowID(w));
   }
 
@@ -995,20 +1016,24 @@ public class Linux {
     x11.XMapWindow(tray_display, tray_window);
 
     tray_active = true;
-    while (tray_active) {
-      x11.XNextEvent(tray_display, ev);
-      switch (ev.type) {
-        case ClientMessage:
-          XClientMessageEvent xclient = new XClientMessageEvent(ev.getPointer());
-          xclient.read();
-          tray_client_message(xclient);
-          break;
-        case DestroyNotify:
-          XDestroyWindowEvent xdestroywindow = new XDestroyWindowEvent(ev.getPointer());
-          xdestroywindow.read();
-          tray_remove_icon(xdestroywindow);
-          break;
+    try {
+      while (tray_active) {
+        x11.XNextEvent(tray_display, ev);
+        switch (ev.type) {
+          case ClientMessage:
+            XClientMessageEvent xclient = new XClientMessageEvent(ev.getPointer());
+            xclient.read();
+            tray_client_message(xclient);
+            break;
+          case DestroyNotify:
+            XDestroyWindowEvent xdestroywindow = new XDestroyWindowEvent(ev.getPointer());
+            xdestroywindow.read();
+            tray_remove_icon(xdestroywindow);
+            break;
+        }
       }
+    } catch (Exception e) {
+      JFLog.log(e);
     }
 
     x11.XCloseDisplay(tray_display);
@@ -1028,27 +1053,41 @@ public class Linux {
     XEvent ev = new XEvent();
 
     Pointer display = x11.XOpenDisplay(null);
-//    NativeLong client_list = x11.XInternAtom(display, "_NET_CLIENT_LIST", False);
+
     NativeLong root_window = x11.XDefaultRootWindow(display);
 
-    //get DestroyNotify events
-    x11.XSelectInput(display, root_window, new NativeLong(SubstructureNotifyMask));
+    NativeLong net_client_list = x11.XInternAtom(display, "_NET_CLIENT_LIST", False);
+    NativeLong net_client_list_stacking = x11.XInternAtom(display, "_NET_CLIENT_LIST_STACKING", False);
+    NativeLong net_name = x11.XInternAtom(display, "_NET_WM_NAME", False);
+    NativeLong net_pid = x11.XInternAtom(display, "_NET_WM_PID", False);
+    NativeLong net_state = x11.XInternAtom(display, "_NET_WM_STATE", False);
 
-    window_list_active = true;
-    while (window_list_active) {
-      x11.XNextEvent(display, ev);
-      switch (ev.type) {
-        case DestroyNotify:
-          XDestroyWindowEvent xdestroywindow = new XDestroyWindowEvent(ev.getPointer());
-          xdestroywindow.read();
-          x11_listener.windowRemoved();
-          break;
-        case CreateNotify:
-          XCreateWindowEvent xcreatewindow = new XCreateWindowEvent(ev.getPointer());
-          xcreatewindow.read();
-          x11_listener.windowRemoved();
-          break;
+    x11.XSelectInput(display, root_window, new NativeLong(PropertyChangeMask));
+
+    try {
+      window_list_active = true;
+      while (window_list_active) {
+        x11.XNextEvent(display, ev);
+        switch (ev.type) {
+          case PropertyNotify:
+            XPropertyEvent xpropertyevent = new XPropertyEvent(ev.getPointer());
+            xpropertyevent.read();
+            if (
+              (xpropertyevent.atom.equals(net_client_list)) ||
+              (xpropertyevent.atom.equals(net_client_list_stacking)) ||
+              (xpropertyevent.atom.equals(net_name)) ||
+              (xpropertyevent.atom.equals(net_pid)) ||
+              (xpropertyevent.atom.equals(net_state))
+               )
+            {
+              x11_update_window_list(display);
+              x11_listener.windowsChanged();
+            }
+            break;
+        }
       }
+    } catch (Exception e) {
+      JFLog.log(e);
     }
 
     x11.XCloseDisplay(display);
@@ -1059,116 +1098,169 @@ public class Linux {
     //TODO : send a message to ??? to cause main() loop to abort
   }
 
-  public static class TopLevelWindow {
+  public static class Window {
     public Object xid;
     public int pid;
     public String title;  //_NET_WM_NAME
     public String name;  //XFetchName
     public String res_name, res_class;
-    public TopLevelWindow(Object xid, int pid, String title, String name, XClassHint hint) {
+    public String file;  //user defined
+    public NativeLong org_event_mask;
+    public Window(Object xid, int pid, String title, String name, String res_name, String res_class) {
       this.xid = xid;
       this.pid = pid;
       this.title = title;
       this.name = name;
-      if (hint.res_name != null)
-        res_name = hint.res_name.getString(0);
-      else
-        res_name = "";
-      if (hint.res_class != null)
-        res_class = hint.res_class.getString(0);
-      else
-        res_class = "";
+      this.res_name = res_name;
+      this.res_class = res_class;
     }
   }
 
-  /** Returns details of all top-level windows */
-  public static java.util.List<TopLevelWindow> x11_get_window_list() {
-    ArrayList<TopLevelWindow> topLevelWindows = new ArrayList<TopLevelWindow>();
+  private static ArrayList<Window> currentList = new ArrayList<Window>();
+  private static Object currentListLock = new Object();
 
-    Pointer display = x11.XOpenDisplay(null);
+  /** Returns list of all top-level windows.
+   * NOTE : x11_window_list_main() must be running.
+   */
+  public static Window[] x11_get_window_list() {
+    //create a "copy" of currentList
+    synchronized(currentListLock) {
+      return currentList.toArray(new Window[0]);
+    }
+  }
+
+  private static void x11_update_window_list(Pointer display) {
+    ArrayList<Window> newList = new ArrayList<Window>();
+
     NativeLong root_window = x11.XDefaultRootWindow(display);
 
+    NativeLong net_client_list = x11.XInternAtom(display, "_NET_CLIENT_LIST", False);
+//    NativeLong net_client_list_stacking = x11.XInternAtom(display, "_NET_CLIENT_LIST_STACKING", False);
     NativeLong net_name = x11.XInternAtom(display, "_NET_WM_NAME", False);
     NativeLong net_pid = x11.XInternAtom(display, "_NET_WM_PID", False);
+    NativeLong net_state = x11.XInternAtom(display, "_NET_WM_STATE", False);
     NativeLong net_skip_taskbar = x11.XInternAtom(display, "_NET_WM_STATE_SKIP_TASKBAR", False);
 
-    PointerByReference childrenRef = new PointerByReference();
-    IntByReference nchildren = new IntByReference();
-    int res = x11.XQueryTree(display, root_window, new PointerByReference(), new PointerByReference(), childrenRef
-      , nchildren);
+    PointerByReference propRef = new PointerByReference();
+    NativeLongByReference nItemsRef = new NativeLongByReference();
+    x11.XGetWindowProperty(display, root_window, net_client_list, new NativeLong(0), new NativeLong(1024), False, AnyPropertyType
+      , new NativeLongByReference(), new IntByReference(), nItemsRef, new NativeLongByReference(), propRef);
+    int nWindows = nItemsRef.getValue().intValue();
+    int nItems;
+    Pointer list = propRef.getValue();
+    for(int a=0;a<nWindows;a++) {
+      NativeLong xid = list.getNativeLong(NativeLong.SIZE * a);
 
-    if (res != 0) {
-      int cnt = nchildren.getValue();
-      Pointer list = childrenRef.getValue();
-      for(int a=0;a<cnt;a++) {
-        NativeLong xid = list.getNativeLong(NativeLong.SIZE * a);
-
-        PointerByReference propRef = new PointerByReference();
-        NativeLongByReference nItemsRef = new NativeLongByReference();
-        int nItems;
-
-        //has skip taskbar???
-        x11.XGetWindowProperty(display, xid, net_skip_taskbar, new NativeLong(0), new NativeLong(1024), False, AnyPropertyType
-          , new NativeLongByReference(), new IntByReference(), nItemsRef, new NativeLongByReference(), propRef);
-        nItems = nItemsRef.getValue().intValue();
-        if (nItems > 0) {
-          x11.XFree(propRef.getValue());
-          continue;
+      //check state for skip taskbar
+      propRef = new PointerByReference();
+      nItemsRef = new NativeLongByReference();
+      x11.XGetWindowProperty(display, xid, net_state, new NativeLong(0), new NativeLong(1024), False, AnyPropertyType
+        , new NativeLongByReference(), new IntByReference(), nItemsRef, new NativeLongByReference(), propRef);
+      nItems = nItemsRef.getValue().intValue();
+      if (nItems > 0) {
+        Pointer prop = propRef.getValue();
+        boolean found = false;
+        for(int n=0;n<nItems;n++) {
+          if (prop.getNativeLong(n * NativeLong.SIZE).equals(net_skip_taskbar)) {
+            found = true;
+          }
         }
+        x11.XFree(propRef.getValue());
+        if (found) continue;
+      }
 
-        //get window pid
-        propRef = new PointerByReference();
-        nItemsRef = new NativeLongByReference();
-        x11.XGetWindowProperty(display, xid, net_pid, new NativeLong(0), new NativeLong(1024), False, AnyPropertyType
-          , new NativeLongByReference(), new IntByReference(), nItemsRef, new NativeLongByReference(), propRef);
-        nItems = nItemsRef.getValue().intValue();
-        int pid = -1;
-        if (nItems > 0) {
-          Pointer prop = propRef.getValue();
-          pid = (int)prop.getInt(0);
-          x11.XFree(prop);
-        }
+      //get window pid
+      propRef = new PointerByReference();
+      nItemsRef = new NativeLongByReference();
+      x11.XGetWindowProperty(display, xid, net_pid, new NativeLong(0), new NativeLong(1024), False, AnyPropertyType
+        , new NativeLongByReference(), new IntByReference(), nItemsRef, new NativeLongByReference(), propRef);
+      nItems = nItemsRef.getValue().intValue();
+      int pid = -1;
+      if (nItems > 0) {
+        Pointer prop = propRef.getValue();
+        pid = (int)prop.getInt(0);
+        x11.XFree(prop);
+      }
 
-        //get title
-        propRef = new PointerByReference();
-        nItemsRef = new NativeLongByReference();
-        x11.XGetWindowProperty(display, xid, net_name, new NativeLong(0), new NativeLong(1024), False, AnyPropertyType
-          , new NativeLongByReference(), new IntByReference(), nItemsRef, new NativeLongByReference(), propRef);
-        nItems = nItemsRef.getValue().intValue();
-        String title = "";
-        if (nItems > 0) {
-          Pointer prop = propRef.getValue();
-          title = prop.getString(0);
-          x11.XFree(prop);
-        }
+      //get title
+      propRef = new PointerByReference();
+      nItemsRef = new NativeLongByReference();
+      x11.XGetWindowProperty(display, xid, net_name, new NativeLong(0), new NativeLong(1024), False, AnyPropertyType
+        , new NativeLongByReference(), new IntByReference(), nItemsRef, new NativeLongByReference(), propRef);
+      nItems = nItemsRef.getValue().intValue();
+      String title = "";
+      if (nItems > 0) {
+        Pointer prop = propRef.getValue();
+        title = prop.getString(0);
+        x11.XFree(prop);
+      }
 
-        String name = "";
-        PointerByReference nameRef = new PointerByReference();
-        x11.XFetchName(display, xid, nameRef);
-        Pointer namePtr = nameRef.getValue();
-        if (namePtr != null) {
-          name = namePtr.getString(0);
-          x11.XFree(namePtr);
-        }
+      //get name
+      String name = "";
+      PointerByReference nameRef = new PointerByReference();
+      x11.XFetchName(display, xid, nameRef);
+      Pointer namePtr = nameRef.getValue();
+      if (namePtr != null) {
+        name = namePtr.getString(0);
+        x11.XFree(namePtr);
+      }
 
-        XClassHint hint = new XClassHint();
-        x11.XGetClassHint(display, xid, hint);
-        topLevelWindows.add(new TopLevelWindow(xid, pid, title, name, hint));
-        if (hint.res_name != null) {
-          x11.XFree(hint.res_name);
-          hint.res_name = null;
+      //get res_name, res_class
+      String res_name = "", res_class = "";
+      XClassHint hint = new XClassHint();
+      x11.XGetClassHint(display, xid, hint);
+      if (hint.res_name != null) {
+        res_name = hint.res_name.getString(0);
+        x11.XFree(hint.res_name);
+        hint.res_name = null;
+      }
+      if (hint.res_class != null) {
+        res_class = hint.res_class.getString(0);
+        x11.XFree(hint.res_class);
+        hint.res_class = null;
+      }
+
+      //add to list
+      newList.add(new Window(xid, pid, title, name, res_name, res_class));
+    }
+    x11.XFree(list);
+
+    synchronized(currentListLock) {
+      //add newList to currentList
+      for(int a=0;a<newList.size();a++) {
+        Window tlw = newList.get(a);
+        Object xid = tlw.xid;
+        boolean found = false;
+        for(int b=0;b<currentList.size();b++) {
+          if (currentList.get(b).xid.equals(xid)) {
+            found = true;
+            break;
+          }
         }
-        if (hint.res_class != null) {
-          x11.XFree(hint.res_class);
-          hint.res_class = null;
+        if (!found) {
+          currentList.add(tlw);
+          tlw.org_event_mask = x11.XSelectInput(display, (NativeLong)tlw.xid, new NativeLong(PropertyChangeMask));
         }
       }
-      x11.XFree(list);
+      //remove from currentList if not in newList
+      for(int a=0;a<currentList.size();) {
+        Window tlw = currentList.get(a);
+        Object xid = tlw.xid;
+        boolean found = false;
+        for(int b=0;b<newList.size();b++) {
+          if (newList.get(b).xid.equals(xid)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          currentList.remove(a);
+          x11.XSelectInput(display, (NativeLong)tlw.xid, tlw.org_event_mask);
+        } else {
+          a++;
+        }
+      }
     }
-
-    x11.XCloseDisplay(display);
-
-    return topLevelWindows;
   }
 
   public static void x11_raise_window(Object xid) {
@@ -1240,6 +1332,360 @@ public class Linux {
     x11.XCloseDisplay(display);
 
     return status != 0;
+  }
+
+  //X11 : RandR support
+
+  public static class Size {
+    public String size;
+    public boolean active;
+    public boolean preferred;
+  }
+
+  public static class Port {
+    public String name;
+    public boolean connected;
+    public boolean hasActiveSize;
+    public boolean used;  //mapped to Monitor
+    public ArrayList<Size> sizes = new ArrayList<Size>();
+  }
+
+  public static class Screen {
+    public int idx;
+    public ArrayList<Port> ports = new ArrayList<Port>();
+  }
+
+  public static class Monitor {
+    public String name;
+    public String res = "";  //resolution
+    public int rotate;  //NORMAL, RIGHT, LEFT, INVERTED
+    public boolean mirror;  //relpos ignored
+    public int relpos;  //NONE, LEFT, RIGHT, BELOW, ABOVE, SAME
+    public String relName = "";  //relative to this monitor
+  }
+
+  public static final int P_NONE = 0;  //only primary uses P_NONE
+  public static final int P_LEFT = 1;
+  public static final int P_ABOVE = 2;
+  public static final int P_RIGHT = 3;
+  public static final int P_BELOW = 4;
+  public static final int P_SAME = 5;
+
+  public static final int R_NORMAL = 0;
+  public static final int R_RIGHT = 1;  //CW
+  public static final int R_LEFT = 2;  //CCW
+  public static final int R_INVERTED = 3;
+
+  public static ArrayList<Screen> screens = new ArrayList<Screen>();
+
+  /** X11 : RandR : Detects current state.
+   * @param config = current settings (optional)
+   * @return new settings
+   */
+  public static Monitor[] x11_rr_get_setup(Monitor config[]) {
+    //xrandr output:
+    //--------------
+    //Screen 0: minimum 1 x 1, current X x Y, maximum 8192 x 8192
+    //MonitorName [dis]connected XxY+0+0 [rotation] (normal left inverted right x axis y axis) 0mm x 0mm
+    //  XxY         freq*+    [freq2]    (where *=current +=preferred)
+    //--------------
+    //(where rotation = right, left, inverted)
+
+    screens.clear();
+    Screen screen = null;
+    Port port = null;
+    Size size = null;
+    ArrayList<Monitor> newConfig = new ArrayList<Monitor>();
+
+    ShellProcess sp = new ShellProcess();
+    String output = sp.run(new String[] {"xrandr"}, false);
+    String lns[] = output.split("\n");
+    for(int a=0;a<lns.length;a++) {
+      if (lns[a].length() == 0) continue;
+      if (lns[a].startsWith("Screen ")) {
+        screen = new Screen();
+        int i1 = lns[a].indexOf(" ");
+        int i2 = lns[a].indexOf(":");
+        screen.idx = JF.atoi(lns[a].substring(i1+1, i2));
+        screens.add(screen);
+        continue;
+      }
+      if (lns[a].startsWith(" ")) {
+        //size / rate*+  (*=in use +=preferred)
+        if (port == null) {
+          JFLog.log("Error:XRandR size line without monitor");
+          continue;
+        }
+        if (!port.connected) continue;  //junk info
+        size = new Size();
+        String f[] = lns[a].trim().split(" +");  //greedy spaces
+        size.size = f[0];
+        size.active = f[1].indexOf("*") != -1;
+        if (size.active) {
+          port.hasActiveSize = true;
+        }
+        size.preferred = f[1].indexOf("+") != -1 || (f.length > 2 && f[2].equals("+"));
+        port.sizes.add(size);
+      } else {
+        //port
+        port = new Port();
+        int i1 = lns[a].indexOf(" ");
+        port.name = lns[a].substring(0, i1);
+        port.connected = lns[a].substring(i1+1).startsWith("connected");
+        screen.ports.add(port);
+      }
+    }
+    if (config == null) config = new Monitor[0];
+    for(int b=0;b<screens.size();b++) {
+      screen = screens.get(b);
+      for(int c=0;c<screen.ports.size();c++) {
+        port = screen.ports.get(c);
+        if (!port.connected) continue;  //ignore disconnected monitors
+        Monitor monitor = new Monitor();
+        monitor.name = port.name;
+        for(int a=0;a<config.length;a++) {
+          Monitor other = config[a];
+          if (other.name.equals(port.name)) {
+            monitor.res = other.res;
+            monitor.mirror = other.mirror;
+            monitor.relpos = other.relpos;
+            monitor.relName = other.relName;
+            monitor.rotate = other.rotate;
+            break;
+          }
+        }
+        if (monitor.res.length() == 0) {
+          if (port.hasActiveSize) {
+            //use active size
+            for(int s=0;s<port.sizes.size();s++) {
+              size = port.sizes.get(s);
+              if (size.active) {
+                monitor.res = size.size;
+                break;
+              }
+            }
+          } else {
+            //use prefered size
+            for(int s=0;s<port.sizes.size();s++) {
+              size = port.sizes.get(s);
+              if (size.preferred) {
+                monitor.res = size.size;
+                break;
+              }
+            }
+          }
+          if (monitor.res.length() == 0) {
+            //no active or preferred size
+            //use first size listed
+            if (port.sizes.size() > 0) {
+              monitor.res = port.sizes.get(0).size;
+            } else {
+              //no sizes???
+              JFLog.log("Warning:Monitor " + monitor.name + " has no sizes, trying 800x600");
+              monitor.res = "800x600";  //must use something or xrandr options will be corrupt
+            }
+          }
+        }
+        newConfig.add(monitor);
+      }
+    }
+    return x11_rr_arrangeMonitors(newConfig.toArray(new Monitor[0]));
+  }
+
+  /** Arranges monitors ensuring they all have valid positions.
+   * @return : the same list of monitors
+   */
+  public static Monitor[] x11_rr_arrangeMonitors(Monitor monitors[]) {
+    for(int m=1;m<monitors.length;m++) {
+      Monitor monitor = monitors[m];
+      if (monitor.mirror) {
+        monitor.relpos = P_SAME;
+        //ensure mirrored monitor exists and is not a mirror itself
+        String mirrorName = monitor.relName;
+        boolean ok = false;
+        for(int c=0;c<monitors.length;c++) {
+          if (monitors[c].name.equals(mirrorName) && !monitors[c].mirror) {
+            ok = true;
+            break;
+          }
+        }
+        if (ok) continue;
+        //mirror is not valid
+        monitor.relpos = P_NONE;
+        monitor.relName = "";
+      }
+      if (monitor.relpos != P_NONE && monitor.relpos != P_SAME) {
+        //make sure path exists and is not circular
+        Monitor path = monitor;
+        boolean ok = true;
+        while (ok && path != monitors[0]) {
+          String parent = path.relName;
+          Monitor thisMonitor = path;
+          for(int c=0;c<monitors.length;c++) {
+            if (monitors[c].name.equals(parent)) {
+              path = monitors[c];
+              break;
+            }
+          }
+          if (thisMonitor == path) {
+            //parent not found
+            ok = false;
+          }
+          if (path == monitor) {
+            //circular
+            ok = false;
+          }
+        }
+        if (ok) continue;
+      }
+      Monitor rightMonitor = null;
+      String relName = monitors[0].name;
+      boolean left = false, right = false, above = false, below = false;
+      for(int c=1;c<monitors.length;c++) {
+        if (!monitors[c].name.equals(relName)) continue;
+        if (monitors[c].relpos == P_LEFT) left = true;
+        else if (monitors[c].relpos == P_RIGHT) {right = true; rightMonitor = monitors[c];}
+        else if (monitors[c].relpos == P_ABOVE) above = true;
+        else if (monitors[c].relpos == P_BELOW) below = true;
+      }
+      monitor.relName = monitors[0].name;
+      if (!right) monitor.relpos = P_RIGHT;
+      else if (!below) monitor.relpos = P_BELOW;
+      else if (!left) monitor.relpos = P_LEFT;
+      else if (!above) monitor.relpos = P_ABOVE;
+      else {
+        //need to make adj to another monitor (just keep moving right)
+        relName = rightMonitor.name;
+        boolean cont = false;
+        do {
+          cont = false;
+          for(int c=1;c<monitors.length;c++) {
+            if (!monitors[c].relName.equals(relName)) continue;
+            if (monitors[c].relpos == P_RIGHT) {
+              cont = true;
+              rightMonitor = monitors[c];
+              relName = rightMonitor.name;
+              break;
+            }
+          }
+        } while (cont);
+        monitor.relName = rightMonitor.name;
+        monitor.relpos = P_RIGHT;
+      }
+    }
+    return monitors;
+  }
+
+
+  /** X11 : RandR : Reconnects disconnected monitors. */
+  public static void x11_rr_auto() {
+    try {
+      Process p = Runtime.getRuntime().exec(new String[] {"xrandr", "--auto"});
+      p.waitFor();
+    } catch (Exception e) {
+      JFLog.log(e);
+    }
+  }
+
+  /** X11 : RandR : Applies config. */
+  public static void x11_rr_set(Monitor config[]) {
+    ArrayList<String> cmd = new ArrayList<String>();
+    cmd.add("xrandr");
+    for(int a=0;a<config.length;a++) {
+      cmd.add("--output");
+      cmd.add(config[a].name);
+      cmd.add("--mode");
+      cmd.add(config[a].res);
+      cmd.add("--rotate");
+      switch (config[a].rotate) {
+        case R_NORMAL: cmd.add("normal"); break;
+        case R_LEFT: cmd.add("left"); break;
+        case R_RIGHT: cmd.add("right"); break;
+        case R_INVERTED: cmd.add("inverted"); break;
+      }
+      if (config[a].relpos != P_NONE) {
+        switch (config[a].relpos) {
+          case P_LEFT: cmd.add("--left-of"); break;
+          case P_RIGHT: cmd.add("--right-of"); break;
+          case P_ABOVE: cmd.add("--above"); break;
+          case P_BELOW: cmd.add("--below"); break;
+          case P_SAME: cmd.add("--same-as"); break;
+        }
+        cmd.add(config[a].relName);
+      }
+    }
+/*
+    for(int a=0;a<cmd.size();a++) {
+      JFLog.log("cmd[]=" + cmd.get(a));
+    }
+*/
+    try {
+      Process p = Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+      p.waitFor();
+    } catch (Exception e) {
+      JFLog.log(e);
+    }
+  }
+
+  /** X11 : RandR : Sets only primary display to res and disable all other (for Logon Screen)
+   * @param res = resolution (ie: 800x600)
+   */
+  public static void x11_rr_reset(String res) {
+    Monitor config[] = x11_rr_get_setup(null);
+    ArrayList<String> cmd = new ArrayList<String>();
+    cmd.add("xrandr");
+    cmd.add("--output");
+    cmd.add(config[0].name);
+    cmd.add("--mode");
+    cmd.add(res);
+    cmd.add("--rotate");
+    cmd.add("normal");
+    for(int a=1;a<config.length;a++) {
+      cmd.add("--output");
+      cmd.add(config[a].name);
+      cmd.add("--off");
+    }
+    try {
+      Process p = Runtime.getRuntime().exec(cmd.toArray(new String[0]));
+      p.waitFor();
+    } catch (Exception e) {
+      JFLog.log(e);
+    }
+  }
+
+  public static class Config {
+    public Monitor monitor[];
+  }
+
+  public static Monitor[] x11_rr_load_user() {
+    Config config = new Config();
+    try {
+      XML xml = new XML();
+      FileInputStream fis = new FileInputStream(JF.getUserPath() + "/.xrandr.xml");
+      xml.read(fis);
+      xml.writeClass(config);
+      fis.close();
+      return config.monitor;
+    } catch (FileNotFoundException e1) {
+      return new Monitor[0];
+    } catch (Exception e2) {
+      JFLog.log(e2);
+      return new Monitor[0];
+    }
+  }
+
+  public static void x11_rr_save_user(Monitor monitor[]) {
+    Config config = new Config();
+    config.monitor = monitor;
+    try {
+      XML xml = new XML();
+      FileOutputStream fos = new FileOutputStream(JF.getUserPath() + "/.xrandr.xml");
+      xml.readClass("display", config);
+      xml.write(fos);
+      fos.close();
+    } catch (Exception e) {
+      JFLog.log(e);
+    }
   }
 
   //PAM functions
@@ -1338,19 +1784,5 @@ public class Linux {
     pam_pass = null;
 
     return res == 0;
-  }
-
-  //test some x11 stuff
-  public static void main(String args[]) {
-    if (!init()) {
-      System.out.println("init() failed");
-      return;
-    }
-    java.util.List<TopLevelWindow> list = x11_get_window_list();
-    for(int a=0;a<list.size();a++) {
-      TopLevelWindow tlw = list.get(a);
-      System.out.println("xid=" + tlw.xid + ",pid=" + tlw.pid + ",name=" + tlw.name + ",res_name="
-        + tlw.res_name + ",res_class=" + tlw.res_class);
-    }
   }
 }

@@ -60,6 +60,19 @@ public class ShellProcess {
   }
 
   /**
+   * Terminates the program if prompt is detected.
+   */
+  public void addTerminate(String prompt) {
+    Response res = new Response();
+    res.prompt = prompt.trim();
+    res.reply = "";
+    res.repeat = false;
+    res.regex = false;
+    res.term = true;
+    script.add(res);
+  }
+
+  /**
    * Registers a response to a prompt in the form of a regex. If repeat is true
    * the response can be used many times.
    */
@@ -91,6 +104,10 @@ public class ShellProcess {
    */
   public void addListener(ShellProcessListener listener) {
     this.listener = listener;
+  }
+
+  public ShellProcessListener getListener() {
+    return listener;
   }
 
   public void addEnvironmentVariable(String name, String value) {
@@ -319,10 +336,9 @@ public class ShellProcess {
               }
               os.write(res.reply.getBytes());
               os.flush();
-              if (res.repeat) {
-                break;
+              if (!res.repeat) {
+                res.used = true;
               }
-              res.used = true;
               break;
             }
           }
@@ -334,5 +350,9 @@ public class ShellProcess {
         JFLog.log("ShellProcess:Worker thread exiting");
       }
     }
+  }
+
+  public OutputStream getOutputStream() {
+    return os;
   }
 }

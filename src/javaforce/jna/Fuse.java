@@ -190,6 +190,7 @@ public class Fuse {
   }
 
   public int invokeFiller(Pointer filler, Pointer buf, String name, Pointer stat) {
+    if (name.endsWith("/")) name = name.substring(0, name.length() - 1);
     Function func = Function.getFunction(filler);
     return func.invokeInt(new Object[] {buf, name, stat, new Long(0)});
   }

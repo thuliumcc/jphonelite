@@ -113,7 +113,7 @@ public class Music {
           float foctave = octave;
           float fkey = octave12[key];
           sIdx = 0;
-          freq = ((foctave - 4.0f) + fkey);
+          freq = ((foctave - 5.0f) + fkey);
           playing = true;
           vol = 1.0f;
           sustain = i.sustainStart != -1;
@@ -341,6 +341,11 @@ public class Music {
     public int sustainStart, sustainEnd;
     public float attenuation;  //volume drop per sample
 
+    public Instrument() {
+      loopStart = loopEnd = -1;
+      sustainStart = sustainEnd = -1;
+    }
+
     public transient Samples samples = new Samples();
   }
 
@@ -516,7 +521,7 @@ public class Music {
     }
     seqIdx = 0;
     rowIdx = 0;
-    prepNextPattern();
+    if (!prepNextPattern()) return;
     playing = true;
   }
   public void setListener(Listener listener) {
@@ -529,8 +534,8 @@ public class Music {
     play = Play.song;
     seqIdx = 0;
     rowIdx = 0;
-    prepNextPattern();
-    listener.musicRow(seqIdx, patternIdx, rowIdx);
+    if (!prepNextPattern()) return;
+    if (listener != null) listener.musicRow(seqIdx, patternIdx, rowIdx);
     playing = true;
   }
 
@@ -542,7 +547,7 @@ public class Music {
     rowIdx = 0;
     pattern = song.patterns.get(patternIdx);
     pattern.reset(this);
-    listener.musicRow(seqIdx, patternIdx, rowIdx);
+    if (listener != null) listener.musicRow(seqIdx, patternIdx, rowIdx);
     playing = true;
   }
 
@@ -744,15 +749,16 @@ public class Music {
 
   //private code
 
-  private void prepNextPattern() {
+  private boolean prepNextPattern() {
     if (seqIdx >= song.sequence.size()) {
       playing = false;
-      listener.musicEnded();
-      return;
+      if (listener != null) listener.musicEnded();
+      return false;
     }
     patternIdx = song.sequence.get(seqIdx);
     pattern = song.patterns.get(patternIdx);
     pattern.reset(this);
+    return true;
   }
 
   //output next audio chunk
@@ -762,7 +768,7 @@ public class Music {
       synchronized(lock) {
         if (playing) processMusic();
         processSound();
-        listener.musicSamples(samples);
+        if (listener != null) listener.musicSamples(samples);
       }
       output.write(samples);
     } catch (Exception e) {
@@ -779,37 +785,35 @@ public class Music {
         samplesThisBeat = 0;
         if (play == Play.note) {
           playing = false;
-          listener.musicEnded();
+          if (listener != null) listener.musicEnded();
           return;
         }
         rowIdx++;
         if (rowIdx == 128) {
           rowIdx = 0;
           seqIdx++;
+          if (play == Play.pattern) {
+            playing = false;
+            if (listener != null) listener.musicEnded();
+            return;
+          }
           if (seqIdx == song.sequence.size()) {
             if (listener != null) listener.musicEnded();
             if (!repeat) {
               playing = false;
-              listener.musicEnded();
+              if (listener != null) listener.musicEnded();
               return;
             }
             seqIdx = 0;
           }
-          if (play == Play.pattern) {
-            playing = false;
-            listener.musicEnded();
-            return;
-          }
-          patternIdx = song.sequence.get(seqIdx);
-          pattern = song.patterns.get(patternIdx);
-          pattern.reset(this);
+          if (!prepNextPattern()) return;
         } else {
           int nTracks = pattern.tracks.size();
           for(int t=0;t<nTracks;t++) {
             pattern.tracks.get(t).nextNote(this);
           }
         }
-        listener.musicRow(seqIdx, patternIdx, rowIdx);
+        if (listener != null) listener.musicRow(seqIdx, patternIdx, rowIdx);
       }
       int nTracks = pattern.tracks.size();
       for(int b=0;b<nTracks;b++) {
@@ -824,12 +828,7 @@ public class Music {
         short sample = t.i.samples.samples[sIdx];
         L += sample * t.volL * t.vol;
         R += sample * t.volR * t.vol;
-        if (t.freq == 0.0f)
-          t.sIdx++;
-        else if (t.freq > 0.0f)
-          t.sIdx += (t.freq + 1.0f);
-        else if (t.freq < 0.0f)
-          t.sIdx += (1.0f / -t.freq);
+        t.sIdx += Math.pow(2.0, t.freq);
         t.vol -= t.i.attenuation;
         sIdx = (int)t.sIdx;
         if ((t.vol <= 0.0f) || (sIdx >= t.i.samples.samples.length)) {
@@ -869,12 +868,7 @@ public class Music {
         short sample = sound.i.samples.samples[sIdx];
         L += sample * sound.volL * sound.vol;
         R += sample * sound.volR * sound.vol;
-        if (sound.freq == 0.0f)
-          sound.sIdx++;
-        else if (sound.freq > 0.0f)
-          sound.sIdx += (sound.freq + 1.0f);
-        else if (sound.freq < 0.0f)
-          sound.sIdx += (1.0f / -sound.freq);
+        sound.sIdx += Math.pow(2.0, sound.freq);
         sound.vol -= sound.i.attenuation;
         sIdx = (int)sound.sIdx;
         if ((sound.vol <= 0.0f) || (sIdx >= sound.i.samples.samples.length)) {
