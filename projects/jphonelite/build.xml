@@ -1,10 +1,10 @@
-<project name="jphonelite" default="sign-jar" basedir=".">
+<project name="jphonelite" default="jar" basedir=".">
   <description>jphonelite</description>
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
   <property name="build" location="classes"/>
   <import file="../../base.xml"/>
-  <property name="JPHONELITEVERSION" value="1.7.1"/>
+  <property name="JPHONELITEVERSION" value="1.8.0"/>
 
   <target name="depjars">
     <jar destfile="javaforce.jar">
@@ -50,6 +50,7 @@
     <!-- Build jar file from class files -->
     <jar destfile="jphonelite.jar" includes="*.class" basedir="${build}">
       <fileset dir="image" includes="*.png"/>
+      <fileset dir="." includes="*.wav"/>
       <fileset dir="." includes="*.crt"/>
       <fileset dir="." includes="readme.txt"/>
       <manifest>
@@ -120,7 +121,7 @@
     <copy file="jphonelite-${JPHONELITEVERSION}-1.noarch.rpm" todir="../../repo/fedora"/>
   </target>
 
-  <target name="release-bin" depends="jar" description="create release zip file">
+  <target name="release-bin" depends="sign-jar" description="create release zip file">
     <zip destfile="jphonelite-${JPHONELITEVERSION}.zip">
       <fileset dir="..">
         <include name="jphonelite/*.jar"/>
@@ -140,21 +141,10 @@
   <target name="release-src" depends="" description="create release zip file">
     <zip destfile="jphonelite-src-${JPHONELITEVERSION}.zip">
       <fileset dir="../../..">
-        <include name="jf/src/javaforce/*.java"/>
-        <include name="jf/src/javaforce/voip/*.java"/>
-        <exclude name="jf/src/javaforce/voip/SIPServer*.java"/>
-        <exclude name="jf/src/javaforce/voip/CallDetailsServer.java"/>
-        <include name="jf/src/javaforce/jna/*.java"/>
-        <include name="jf/src/javaforce/jna/com/*.java"/>
-        <include name="jf/src/javaforce/media/*.java"/>
-        <include name="jf/src/javaforce/linux/*.java"/>
-        <include name="jf/src/javaforce/codec/g729a/*.java"/>
         <include name="jf/keys/readme.txt"/>
         <include name="jf/keys/build.xml"/>
         <include name="jf/base.*"/>
-        <include name="jf/build.xml"/>
         <include name="jf/license.txt"/>
-        <include name="jf/nbproject/*.xml"/>
         <include name="jf/jars/javaforce.jar"/>
         <include name="jf/jars/jna.jar"/>
         <include name="jf/jars/bouncycastle.jar"/>
@@ -168,6 +158,7 @@
         <include name="jf/projects/jphonelite/*.jnlp"/>
         <include name="jf/projects/jphonelite/*.txt"/>
         <include name="jf/projects/jphonelite/*.png"/>
+        <include name="jf/projects/jphonelite/*.wav"/>
         <include name="jf/projects/jphonelite/image/*.png"/>
         <include name="jf/projects/jphonelite/*.ico"/>
         <include name="jf/projects/jphonelite/*.html"/>

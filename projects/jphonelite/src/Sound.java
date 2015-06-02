@@ -29,7 +29,7 @@ public class Sound {
   private boolean mute = false;
   private DTMF dtmf = new DTMF();
   private boolean playing = false;
-  private javaforce.voip.Wav wav;
+  private javaforce.voip.Wav inWav, outWav;
   private int speakerDelay = 0;
   private int sampleRate, sampleRate50, sampleRate50x2;
 
@@ -41,8 +41,47 @@ public class Sound {
     sampleRate = Settings.current.sampleRate;
     sampleRate50 = sampleRate / 50;
     sampleRate50x2 = sampleRate50 * 2;
-    wav = new javaforce.voip.Wav();
-    wav.load(Settings.current.ringtone);
+    //setup inbound ring tone
+    if (Settings.current.inRingtone.startsWith("*")) {
+      if (Settings.current.inRingtone.equals("*RING")) {
+        inWav = new javaforce.voip.Wav();
+        inWav.load(getClass().getResourceAsStream("ringing.wav"));
+      } else if (Settings.current.inRingtone.equals("*NA")) {
+        initInRinging(440, 480, 2000, 4000, 2000, 4000);  //north america
+      } else if (Settings.current.inRingtone.equals("*UK")) {
+        initInRinging(400, 450, 400, 200, 400, 2000);  //UK
+      } else {
+        inWav = new javaforce.voip.Wav();
+        inWav.load(getClass().getResourceAsStream("ringing.wav"));
+      }
+    } else {
+      inWav = new javaforce.voip.Wav();
+      if (!inWav.load(Settings.current.inRingtone)) {
+        JFLog.log("Failed to load : " + Settings.current.inRingtone);
+        inWav = new javaforce.voip.Wav();
+        inWav.load(getClass().getResourceAsStream("ringing.wav"));
+      }
+    }
+    //setup outbound ringback tone
+    if (Settings.current.outRingtone.startsWith("*")) {
+      if (Settings.current.outRingtone.equals("*RING")) {
+        outWav = new javaforce.voip.Wav();
+        outWav.load(getClass().getResourceAsStream("ringing.wav"));
+      } else if (Settings.current.outRingtone.equals("*NA")) {
+        initOutRinging(440, 480, 2000, 4000, 2000, 4000);  //north america
+      } else if (Settings.current.outRingtone.equals("*UK")) {
+        initOutRinging(400, 450, 400, 200, 400, 2000);  //UK
+      } else {
+        initOutRinging(440, 480, 2000, 4000, 2000, 4000);  //north america
+      }
+    } else {
+      outWav = new javaforce.voip.Wav();
+      if (!outWav.load(Settings.current.outRingtone)) {
+        JFLog.log("Failed to load : " + Settings.current.outRingtone);
+        initOutRinging(440, 480, 2000, 4000, 2000, 4000);  //north america
+      }
+    }
+
     output = javaforce.media.Sound.getOutput(Settings.current.nativeSound);
     input = javaforce.media.Sound.getInput(Settings.current.nativeSound);
     System.out.println("output=" + output + ",input=" + input);
@@ -99,6 +138,8 @@ public class Sound {
     }
     mc.setMeterPlay(0);
     input.stop();
+    inWav = null;
+    outWav = null;
   }
 
   /** Returns if software volume control on recording. */
@@ -417,10 +458,10 @@ Causes the waveform to slope gradually just like a capacitor would in a real aud
         }
       }
       for (int a = 0; a < 6; a++) {
-        if (lines[a].ringing && !lines[a].ringback) {
+        if (lines[a].ringing && !lines[a].ringback && !lines[a].incoming) {
           if (!outRinging) {
-            if (wav.isLoaded()) {
-              wav.reset();
+            if (outWav != null) {
+              outWav.reset();
             } else {
               startRinging();
             }
@@ -435,8 +476,8 @@ Causes the waveform to slope gradually just like a capacitor would in a real aud
       for (int a = 0; a < 6; a++) {
         if (lines[a].incoming) {
           if (!inRinging) {
-            if (wav.isLoaded()) {
-              wav.reset();
+            if (inWav != null) {
+              inWav.reset();
             } else {
               startRinging();
             }
@@ -533,55 +574,119 @@ Causes the waveform to slope gradually just like a capacitor would in a real aud
 
   /** Starts a generated ringing phone sound. */
 
-  public void startRinging() {
-    ring_440 = 0;
-    ring_480 = 0;
-    ringCycle = 0;
-    ringCount = 0;
-    wait_440 = 0;
+  private void startRinging() {
+    outRingFreq1Count = 0;
+    outRingFreq2Count = 0;
+    outRingCycle = 0;
+    outRingCount = 0;
+
+    inRingFreq1Count = 0;
+    inRingFreq2Count = 0;
+    inRingCycle = 0;
+    inRingCount = 0;
+
+    waitCount = 0;
     waitCycle = 0;
   }
 
   private final double ringVol = 8000.0;
-  private int ring_440, ring_480;
-  private int ringCycle;
-  private int ringCount;
-  private int wait_440;
-  private int waitCycle;
 
-  /** Returns next 20ms of a generated ringing phone. */
+  private int outRingFreq1, outRingFreq2;
+  private int outRingFreq1Count, outRingFreq2Count;
+  private int outRingCycle;
+  private int outRingCount;
+  private int outRingTimes[] = new int[4];
+
+  private int inRingFreq1, inRingFreq2;
+  private int inRingFreq1Count, inRingFreq2Count;
+  private int inRingCycle;
+  private int inRingCount;
+  private int inRingTimes[] = new int[4];
+
+  private void initOutRinging(int freq1, int freq2, int o1, int p1, int o2, int p2) {
+    outRingFreq1 = freq1;
+    outRingFreq2 = freq2;
+    outRingTimes[0] = o1;
+    outRingTimes[1] = p1;
+    outRingTimes[2] = o2;
+    outRingTimes[3] = p2;
+  }
+
+  private void initInRinging(int freq1, int freq2, int o1, int p1, int o2, int p2) {
+    inRingFreq1 = freq1;
+    inRingFreq2 = freq2;
+    inRingTimes[0] = o1;
+    inRingTimes[1] = p1;
+    inRingTimes[2] = o2;
+    inRingTimes[3] = p2;
+  }
+
+  /** Returns next 20ms of ringing phone. */
 
   public short[] getRinging() {
-    //440 + 480
-    //2 seconds on/3 seconds off
-    if ((inRinging) && (wav.isLoaded())) {
-      return wav.getSamples();
+    if (outRinging && outWav != null) {
+      return outWav.getSamples();
     }
-    ringCount += 160;
-    if (ringCount == 8000) {
-      ringCount = 0;
-      ringCycle++;
+    if (inRinging && inWav != null) {
+      return inWav.getSamples();
     }
-    if (ringCycle == 5) ringCycle = 0;
-    if (ringCycle > 1) {
-      ring_440 = 0;
-      ring_480 = 0;
-      return silence;
+    if (outRinging) {
+      outRingCount += 20;
+      if (outRingCount == outRingTimes[outRingCycle]) {
+        outRingCount = 0;
+        outRingCycle++;
+        if (outRingCycle == 4) outRingCycle = 0;
+      }
+      if (outRingCycle % 2 == 1) {
+        outRingFreq1Count = 0;
+        outRingFreq2Count = 0;
+        return silence;
+      }
+      //freq1
+      for (int a = 0; a < 160; a++) {
+        ringing[a] = (short) (Math.sin((2.0 * Math.PI / (8000.0 / outRingFreq1)) * (a + outRingFreq1Count)) * ringVol);
+      }
+      outRingFreq1Count += 160;
+      if (outRingFreq1Count == 8000) outRingFreq1Count = 0;
+      //freq2
+      for (int a = 0; a < 160; a++) {
+        ringing[a] += (short) (Math.sin((2.0 * Math.PI / (8000.0 / outRingFreq2)) * (a + outRingFreq2Count)) * ringVol);
+      }
+      outRingFreq2Count += 160;
+      if (outRingFreq2Count == 8000) outRingFreq2Count = 0;
+      return ringing;
     }
-    //440
-    for (int a = 0; a < 160; a++) {
-      ringing[a] = (short) (Math.sin((2.0 * Math.PI / (8000.0 / 440.0)) * (a + ring_440)) * ringVol);
+    if (inRinging) {
+      inRingCount += 20;
+      if (inRingCount == inRingTimes[inRingCycle]) {
+        inRingCount = 0;
+        inRingCycle++;
+        if (inRingCycle == 4) inRingCycle = 0;
+      }
+      if (inRingCycle % 2 == 1) {
+        inRingFreq1Count = 0;
+        inRingFreq2Count = 0;
+        return silence;
+      }
+      //freq1
+      for (int a = 0; a < 160; a++) {
+        ringing[a] = (short) (Math.sin((2.0 * Math.PI / (8000.0 / inRingFreq1)) * (a + inRingFreq1Count)) * ringVol);
+      }
+      inRingFreq1Count += 160;
+      if (inRingFreq1Count == 8000) inRingFreq1Count = 0;
+      //freq2
+      for (int a = 0; a < 160; a++) {
+        ringing[a] += (short) (Math.sin((2.0 * Math.PI / (8000.0 / inRingFreq2)) * (a + inRingFreq2Count)) * ringVol);
+      }
+      inRingFreq2Count += 160;
+      if (inRingFreq2Count == 8000) inRingFreq2Count = 0;
+      return ringing;
     }
-    ring_440 += 160;
-    if (ring_440 == 8000) ring_440 = 0;
-    //480
-    for (int a = 0; a < 160; a++) {
-      ringing[a] += (short) (Math.sin((2.0 * Math.PI / (8000.0 / 480.0)) * (a + ring_480)) * ringVol);
-    }
-    ring_480 += 160;
-    if (ring_480 == 8000) ring_480 = 0;
-    return ringing;
+    return silence;  //does not happen
   }
+
+  private int waitCount;
+  private int waitCycle;
 
   /** Returns next 20ms of a generated call waiting sound (beep beep). */
 
@@ -591,15 +696,15 @@ Causes the waveform to slope gradually just like a capacitor would in a real aud
     waitCycle++;
     if (waitCycle == 206) waitCycle = 0;
     if ((waitCycle > 6) || (waitCycle == 2) || (waitCycle == 3)) {
-      wait_440 = 0;
+      waitCount = 0;
       return silence;
     }
     //440
     for (int a = 0; a < 160; a++) {
-      callWaiting[a] = (short) (Math.sin((2.0 * Math.PI / (8000.0 / 440.0)) * (a + wait_440)) * ringVol);
+      callWaiting[a] = (short) (Math.sin((2.0 * Math.PI / (8000.0 / 440.0)) * (a + waitCount)) * ringVol);
     }
-    wait_440 += 160;
-    if (wait_440 == 8000) wait_440 = 0;
+    waitCount += 160;
+    if (waitCount == 8000) waitCount = 0;
     return callWaiting;
   }
 

@@ -18,6 +18,7 @@ import javaforce.jna.*;
 
 import com.sun.jna.*;
 import java.awt.event.KeyEvent;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /** Dialog to allow user to edit settings. */
 
@@ -76,13 +77,6 @@ public class EditSettings extends javax.swing.JDialog {
     bCancel = new javax.swing.JButton();
     tabs = new javax.swing.JTabbedPane();
     general = new javax.swing.JPanel();
-    jLabel21 = new javax.swing.JLabel();
-    dndCodeOn = new javax.swing.JTextField();
-    jLabel22 = new javax.swing.JLabel();
-    dndCodeOff = new javax.swing.JTextField();
-    jLabel34 = new javax.swing.JLabel();
-    ringtone = new javax.swing.JTextField();
-    selectRingtoneFilename = new javax.swing.JButton();
     jPanel10 = new javax.swing.JPanel();
     jLabel35 = new javax.swing.JLabel();
     speakerThreshold = new javax.swing.JTextField();
@@ -99,9 +93,18 @@ public class EditSettings extends javax.swing.JDialog {
     autohold = new javax.swing.JCheckBox();
     jLabel51 = new javax.swing.JLabel();
     sipExpires = new javax.swing.JTextField();
-    jLabel30 = new javax.swing.JLabel();
-    downloadPath = new javax.swing.JTextField();
-    selectDownloadPath = new javax.swing.JButton();
+    jPanel1 = new javax.swing.JPanel();
+    jLabel21 = new javax.swing.JLabel();
+    dndCodeOn = new javax.swing.JTextField();
+    jLabel22 = new javax.swing.JLabel();
+    dndCodeOff = new javax.swing.JTextField();
+    jPanel2 = new javax.swing.JPanel();
+    selectOutRingtone = new javax.swing.JButton();
+    jLabel34 = new javax.swing.JLabel();
+    inRingtone = new javax.swing.JComboBox();
+    outRingtone = new javax.swing.JComboBox();
+    jLabel65 = new javax.swing.JLabel();
+    selectInRingtone = new javax.swing.JButton();
     audio = new javax.swing.JPanel();
     jPanel13 = new javax.swing.JPanel();
     jLabel20 = new javax.swing.JLabel();
@@ -124,6 +127,9 @@ public class EditSettings extends javax.swing.JDialog {
     remove_audio_codec = new javax.swing.JButton();
     jPanel17 = new javax.swing.JPanel();
     keepAudioOpen = new javax.swing.JCheckBox();
+    jLabel30 = new javax.swing.JLabel();
+    downloadPath = new javax.swing.JTextField();
+    selectDownloadPath = new javax.swing.JButton();
     video = new javax.swing.JPanel();
     jPanel14 = new javax.swing.JPanel();
     useNativeVideo = new javax.swing.JRadioButton();
@@ -311,28 +317,6 @@ public class EditSettings extends javax.swing.JDialog {
       }
     });
 
-    jLabel21.setText("DND On:");
-
-    dndCodeOn.setText("*78");
-    dndCodeOn.setToolTipText("Do not disturb on code");
-
-    jLabel22.setText("DND Off:");
-
-    dndCodeOff.setText("*79");
-    dndCodeOff.setToolTipText("Do not disturb off code");
-
-    jLabel34.setText("Ringtone:");
-    jLabel34.setToolTipText("Must be 8000Hz, 16bit, mono, PCM");
-
-    ringtone.setToolTipText("Must be 8000Hz, 16bit, mono, PCM");
-
-    selectRingtoneFilename.setText("Select...");
-    selectRingtoneFilename.addActionListener(new java.awt.event.ActionListener() {
-      public void actionPerformed(java.awt.event.ActionEvent evt) {
-        selectRingtoneFilenameActionPerformed(evt);
-      }
-    });
-
     jPanel10.setBorder(javax.swing.BorderFactory.createTitledBorder("Speaker Phone Settings"));
 
     jLabel35.setText("Threshold:");
@@ -353,14 +337,14 @@ public class EditSettings extends javax.swing.JDialog {
       jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(jPanel10Layout.createSequentialGroup()
         .addContainerGap()
-        .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addComponent(jLabel36)
-          .addComponent(jLabel35))
+        .addComponent(jLabel35)
+        .addGap(8, 8, 8)
+        .addComponent(speakerThreshold, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addComponent(speakerThreshold)
-          .addComponent(speakerDelay))
-        .addContainerGap())
+        .addComponent(jLabel36)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(speakerDelay, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
     jPanel10Layout.setVerticalGroup(
       jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -368,9 +352,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addContainerGap()
         .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel35)
-          .addComponent(speakerThreshold, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(speakerThreshold, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
           .addComponent(jLabel36)
           .addComponent(speakerDelay, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -453,14 +435,106 @@ public class EditSettings extends javax.swing.JDialog {
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
 
-    jLabel30.setText("Recording Path:");
+    jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Do Not Disturb"));
 
-    selectDownloadPath.setText("Select...");
-    selectDownloadPath.addActionListener(new java.awt.event.ActionListener() {
+    jLabel21.setText("Enable:");
+
+    dndCodeOn.setText("*78");
+    dndCodeOn.setToolTipText("Do not disturb on code");
+
+    jLabel22.setText("Disable:");
+
+    dndCodeOff.setText("*79");
+    dndCodeOff.setToolTipText("Do not disturb off code");
+
+    javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+    jPanel1.setLayout(jPanel1Layout);
+    jPanel1Layout.setHorizontalGroup(
+      jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(jPanel1Layout.createSequentialGroup()
+        .addContainerGap()
+        .addComponent(jLabel21)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+        .addComponent(dndCodeOn, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(jLabel22)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(dndCodeOff, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+    );
+    jPanel1Layout.setVerticalGroup(
+      jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel21)
+          .addComponent(dndCodeOn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(jLabel22)
+          .addComponent(dndCodeOff, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addContainerGap())
+    );
+
+    jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Tones"));
+
+    selectOutRingtone.setText("Select...");
+    selectOutRingtone.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        selectDownloadPathActionPerformed(evt);
+        selectOutRingtoneActionPerformed(evt);
       }
     });
+
+    jLabel34.setText("Ringback:");
+    jLabel34.setToolTipText("Must be 8000Hz, 16bit, mono, PCM");
+
+    inRingtone.setAutoscrolls(true);
+
+    outRingtone.setAutoscrolls(true);
+
+    jLabel65.setText("Ringing:");
+
+    selectInRingtone.setText("Select...");
+    selectInRingtone.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        selectInRingtoneActionPerformed(evt);
+      }
+    });
+
+    javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+    jPanel2.setLayout(jPanel2Layout);
+    jPanel2Layout.setHorizontalGroup(
+      jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(jPanel2Layout.createSequentialGroup()
+        .addContainerGap()
+        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addGroup(jPanel2Layout.createSequentialGroup()
+            .addComponent(jLabel34)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+            .addComponent(outRingtone, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+          .addGroup(jPanel2Layout.createSequentialGroup()
+            .addComponent(jLabel65)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(inRingtone, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(selectInRingtone, javax.swing.GroupLayout.Alignment.TRAILING)
+          .addComponent(selectOutRingtone, javax.swing.GroupLayout.Alignment.TRAILING))
+        .addContainerGap())
+    );
+    jPanel2Layout.setVerticalGroup(
+      jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+      .addGroup(jPanel2Layout.createSequentialGroup()
+        .addContainerGap()
+        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel65)
+          .addComponent(inRingtone, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(selectInRingtone))
+        .addGap(7, 7, 7)
+        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel34)
+          .addComponent(selectOutRingtone)
+          .addComponent(outRingtone, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+    );
 
     javax.swing.GroupLayout generalLayout = new javax.swing.GroupLayout(general);
     general.setLayout(generalLayout);
@@ -469,55 +543,24 @@ public class EditSettings extends javax.swing.JDialog {
       .addGroup(generalLayout.createSequentialGroup()
         .addContainerGap()
         .addGroup(generalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-          .addGroup(generalLayout.createSequentialGroup()
-            .addGroup(generalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(jLabel21)
-              .addComponent(jLabel22)
-              .addComponent(jLabel34))
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-            .addGroup(generalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-              .addGroup(generalLayout.createSequentialGroup()
-                .addComponent(ringtone, javax.swing.GroupLayout.PREFERRED_SIZE, 235, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(selectRingtoneFilename))
-              .addComponent(dndCodeOn)
-              .addComponent(dndCodeOff)))
-          .addGroup(generalLayout.createSequentialGroup()
-            .addComponent(jLabel30)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(downloadPath, javax.swing.GroupLayout.PREFERRED_SIZE, 212, javax.swing.GroupLayout.PREFERRED_SIZE)
-            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-            .addComponent(selectDownloadPath))
+          .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(jPanel10, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-          .addComponent(jPanel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        .addContainerGap(184, Short.MAX_VALUE))
+          .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        .addContainerGap(210, Short.MAX_VALUE))
     );
     generalLayout.setVerticalGroup(
       generalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(generalLayout.createSequentialGroup()
         .addContainerGap()
-        .addGroup(generalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-          .addComponent(jLabel21)
-          .addComponent(dndCodeOn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addGroup(generalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-          .addComponent(jLabel22)
-          .addComponent(dndCodeOff, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addGroup(generalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-          .addComponent(jLabel34)
-          .addComponent(ringtone, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(selectRingtoneFilename))
+        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-        .addGroup(generalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-          .addComponent(jLabel30)
-          .addComponent(downloadPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(selectDownloadPath))
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(jPanel11, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addGap(382, 382, 382))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        .addGap(283, 283, 283))
     );
 
     tabs.addTab("General", general);
@@ -702,20 +745,41 @@ public class EditSettings extends javax.swing.JDialog {
     keepAudioOpen.setText("Keep Audio Output Open");
     keepAudioOpen.setToolTipText("Avoid pop sound each time output is enabled.");
 
+    jLabel30.setText("Recording Path:");
+
+    selectDownloadPath.setText("Select...");
+    selectDownloadPath.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        selectDownloadPathActionPerformed(evt);
+      }
+    });
+
     javax.swing.GroupLayout jPanel17Layout = new javax.swing.GroupLayout(jPanel17);
     jPanel17.setLayout(jPanel17Layout);
     jPanel17Layout.setHorizontalGroup(
       jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(jPanel17Layout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(keepAudioOpen)
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        .addGroup(jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+          .addComponent(keepAudioOpen)
+          .addGroup(jPanel17Layout.createSequentialGroup()
+            .addComponent(jLabel30)
+            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+            .addComponent(downloadPath)))
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addComponent(selectDownloadPath)
+        .addContainerGap())
     );
     jPanel17Layout.setVerticalGroup(
       jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(jPanel17Layout.createSequentialGroup()
         .addContainerGap()
         .addComponent(keepAudioOpen)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        .addGroup(jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+          .addComponent(jLabel30)
+          .addComponent(downloadPath, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+          .addComponent(selectDownloadPath))
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
 
@@ -730,7 +794,7 @@ public class EditSettings extends javax.swing.JDialog {
           .addComponent(jPanel15, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel13, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel17, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        .addContainerGap(146, Short.MAX_VALUE))
+        .addContainerGap(156, Short.MAX_VALUE))
     );
     audioLayout.setVerticalGroup(
       audioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -979,7 +1043,7 @@ public class EditSettings extends javax.swing.JDialog {
           .addComponent(jPanel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel19, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel18, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        .addContainerGap(156, Short.MAX_VALUE))
+        .addContainerGap(166, Short.MAX_VALUE))
     );
     videoLayout.setVerticalGroup(
       videoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -990,7 +1054,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addComponent(jPanel18, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(jPanel19, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addContainerGap(30, Short.MAX_VALUE))
+        .addContainerGap(75, Short.MAX_VALUE))
     );
 
     tabs.addTab("Video", video);
@@ -1035,10 +1099,10 @@ public class EditSettings extends javax.swing.JDialog {
               .addComponent(jLabel3))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(l1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(l1host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l1user, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l1auth, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l1pass, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)))
+              .addComponent(l1host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l1user, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l1auth, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l1pass, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)))
           .addGroup(l1Layout.createSequentialGroup()
             .addGroup(l1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
               .addComponent(l1secure)
@@ -1085,7 +1149,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel56)
           .addComponent(l1key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(170, Short.MAX_VALUE))
+        .addContainerGap(215, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line1", l1);
@@ -1135,10 +1199,10 @@ public class EditSettings extends javax.swing.JDialog {
               .addComponent(jLabel4))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(l2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(l2user, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l2host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l2auth, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l2pass, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)))
+              .addComponent(l2user, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l2host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l2auth, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l2pass, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)))
           .addGroup(l2Layout.createSequentialGroup()
             .addGroup(l2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
               .addComponent(l2secure)
@@ -1193,7 +1257,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel57)
           .addComponent(l2key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(139, Short.MAX_VALUE))
+        .addContainerGap(184, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line2", l2);
@@ -1243,10 +1307,10 @@ public class EditSettings extends javax.swing.JDialog {
               .addComponent(jLabel9))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(l3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(l3host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l3user, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l3auth, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l3pass, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)))
+              .addComponent(l3host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l3user, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l3auth, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l3pass, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)))
           .addGroup(l3Layout.createSequentialGroup()
             .addGroup(l3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
               .addComponent(l3secure)
@@ -1301,7 +1365,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel58)
           .addComponent(l3key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(139, Short.MAX_VALUE))
+        .addContainerGap(184, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line3", l3);
@@ -1351,10 +1415,10 @@ public class EditSettings extends javax.swing.JDialog {
               .addComponent(jLabel10))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(l4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(l4user, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l4host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l4auth, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l4pass, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)))
+              .addComponent(l4user, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l4host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l4auth, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l4pass, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)))
           .addGroup(l4Layout.createSequentialGroup()
             .addGroup(l4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
               .addComponent(l4secure)
@@ -1409,7 +1473,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel59)
           .addComponent(l4key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(139, Short.MAX_VALUE))
+        .addContainerGap(184, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line4", l4);
@@ -1459,10 +1523,10 @@ public class EditSettings extends javax.swing.JDialog {
               .addComponent(jLabel13))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(l5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(l5user, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l5host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l5auth, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l5pass, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)))
+              .addComponent(l5user, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l5host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l5auth, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l5pass, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)))
           .addGroup(l5Layout.createSequentialGroup()
             .addGroup(l5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
               .addComponent(l5secure)
@@ -1517,7 +1581,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel60)
           .addComponent(l5key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(139, Short.MAX_VALUE))
+        .addContainerGap(184, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line5", l5);
@@ -1567,10 +1631,10 @@ public class EditSettings extends javax.swing.JDialog {
               .addComponent(jLabel16))
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
             .addGroup(l6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-              .addComponent(l6user, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l6host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l6auth, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-              .addComponent(l6pass, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)))
+              .addComponent(l6user, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l6host, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l6auth, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)
+              .addComponent(l6pass, javax.swing.GroupLayout.DEFAULT_SIZE, 469, Short.MAX_VALUE)))
           .addGroup(l6Layout.createSequentialGroup()
             .addGroup(l6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
               .addComponent(l6secure)
@@ -1625,7 +1689,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(l6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel61)
           .addComponent(l6key, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(139, Short.MAX_VALUE))
+        .addContainerGap(184, Short.MAX_VALUE))
     );
 
     jTabbedPane1.addTab("Line6", l6);
@@ -1818,7 +1882,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(topologyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
           .addComponent(jPanel22, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel21, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        .addContainerGap(239, Short.MAX_VALUE))
+        .addContainerGap(249, Short.MAX_VALUE))
     );
     topologyLayout.setVerticalGroup(
       topologyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1827,7 +1891,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addComponent(jPanel21, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(jPanel22, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addContainerGap(38, Short.MAX_VALUE))
+        .addContainerGap(83, Short.MAX_VALUE))
     );
 
     tabs.addTab("Topology", topology);
@@ -1868,7 +1932,7 @@ public class EditSettings extends javax.swing.JDialog {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(keyStatus))
               .addComponent(genCertKey))
-            .addGap(0, 171, Short.MAX_VALUE)))
+            .addGap(0, 181, Short.MAX_VALUE)))
         .addContainerGap())
     );
     eKeyLayout.setVerticalGroup(
@@ -1886,7 +1950,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(eKeyLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel64)
           .addComponent(dname, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(325, Short.MAX_VALUE))
+        .addContainerGap(370, Short.MAX_VALUE))
     );
 
     tabs.addTab("Keys", eKey);
@@ -1901,20 +1965,20 @@ public class EditSettings extends javax.swing.JDialog {
     aboutTab.setLayout(aboutTabLayout);
     aboutTabLayout.setHorizontalGroup(
       aboutTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 566, Short.MAX_VALUE)
+      .addGap(0, 576, Short.MAX_VALUE)
       .addGroup(aboutTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
         .addGroup(aboutTabLayout.createSequentialGroup()
           .addContainerGap()
-          .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 546, Short.MAX_VALUE)
+          .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 556, Short.MAX_VALUE)
           .addContainerGap()))
     );
     aboutTabLayout.setVerticalGroup(
       aboutTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGap(0, 425, Short.MAX_VALUE)
+      .addGap(0, 470, Short.MAX_VALUE)
       .addGroup(aboutTabLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
         .addGroup(aboutTabLayout.createSequentialGroup()
           .addContainerGap()
-          .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 403, Short.MAX_VALUE)
+          .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 448, Short.MAX_VALUE)
           .addContainerGap()))
     );
 
@@ -1951,7 +2015,7 @@ public class EditSettings extends javax.swing.JDialog {
             .addComponent(jLabel45)
             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
             .addComponent(interpolation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        .addContainerGap(274, Short.MAX_VALUE))
+        .addContainerGap(284, Short.MAX_VALUE))
     );
     obsoletePanelLayout.setVerticalGroup(
       obsoletePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1966,7 +2030,7 @@ public class EditSettings extends javax.swing.JDialog {
         .addGroup(obsoletePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(jLabel31)
           .addComponent(videoResolution, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-        .addContainerGap(363, Short.MAX_VALUE))
+        .addContainerGap(408, Short.MAX_VALUE))
     );
 
     tabs.addTab("obsolete", obsoletePanel);
@@ -1990,8 +2054,8 @@ public class EditSettings extends javax.swing.JDialog {
       layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(layout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(tabs, javax.swing.GroupLayout.PREFERRED_SIZE, 453, Short.MAX_VALUE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+        .addComponent(tabs, javax.swing.GroupLayout.PREFERRED_SIZE, 498, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(bSave)
           .addComponent(bCancel))
@@ -2015,10 +2079,6 @@ public class EditSettings extends javax.swing.JDialog {
   private void selectDownloadPathActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectDownloadPathActionPerformed
     selectDownloadPath();
   }//GEN-LAST:event_selectDownloadPathActionPerformed
-
-  private void selectRingtoneFilenameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectRingtoneFilenameActionPerformed
-    selectRingtoneFilename();
-  }//GEN-LAST:event_selectRingtoneFilenameActionPerformed
 
   private void add_audio_codecActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_add_audio_codecActionPerformed
     int idx = disabled_audio_codecs.getSelectedIndex();
@@ -2174,6 +2234,14 @@ public class EditSettings extends javax.swing.JDialog {
     genKeys();
   }//GEN-LAST:event_genCertKeyActionPerformed
 
+  private void selectInRingtoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectInRingtoneActionPerformed
+    selectInRingtoneFilename();
+  }//GEN-LAST:event_selectInRingtoneActionPerformed
+
+  private void selectOutRingtoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectOutRingtoneActionPerformed
+    selectOutRingtoneFilename();
+  }//GEN-LAST:event_selectOutRingtoneActionPerformed
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JTextArea about;
   private javax.swing.JPanel aboutTab;
@@ -2204,6 +2272,7 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JButton genCertKey;
   private javax.swing.JPanel general;
   private javax.swing.JCheckBox hideWhenMinimized;
+  private javax.swing.JComboBox inRingtone;
   private javax.swing.JComboBox interpolation;
   private javax.swing.JLabel jLabel1;
   private javax.swing.JLabel jLabel10;
@@ -2266,9 +2335,11 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JLabel jLabel62;
   private javax.swing.JLabel jLabel63;
   private javax.swing.JLabel jLabel64;
+  private javax.swing.JLabel jLabel65;
   private javax.swing.JLabel jLabel7;
   private javax.swing.JLabel jLabel8;
   private javax.swing.JLabel jLabel9;
+  private javax.swing.JPanel jPanel1;
   private javax.swing.JPanel jPanel10;
   private javax.swing.JPanel jPanel11;
   private javax.swing.JPanel jPanel12;
@@ -2278,6 +2349,7 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JPanel jPanel17;
   private javax.swing.JPanel jPanel18;
   private javax.swing.JPanel jPanel19;
+  private javax.swing.JPanel jPanel2;
   private javax.swing.JPanel jPanel21;
   private javax.swing.JPanel jPanel22;
   private javax.swing.JScrollPane jScrollPane1;
@@ -2366,18 +2438,19 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JRadioButton natTurn;
   private javax.swing.JTextField natUser;
   private javax.swing.JPanel obsoletePanel;
+  private javax.swing.JComboBox outRingtone;
   private javax.swing.JCheckBox received;
   private javax.swing.JCheckBox reinvite;
   private javax.swing.JButton remove_audio_codec;
   private javax.swing.JButton remove_video_codec;
-  private javax.swing.JTextField ringtone;
   private javax.swing.JCheckBox rport;
   private javax.swing.JCheckBox rtpRange;
   private javax.swing.JTextField rtpmax;
   private javax.swing.JTextField rtpmin;
   private javax.swing.JComboBox sampleRate;
   private javax.swing.JButton selectDownloadPath;
-  private javax.swing.JButton selectRingtoneFilename;
+  private javax.swing.JButton selectInRingtone;
+  private javax.swing.JButton selectOutRingtone;
   private javax.swing.JTextField sipExpires;
   private javax.swing.JCheckBox sipRange;
   private javax.swing.JTextField sipmax;
@@ -2566,7 +2639,35 @@ public class EditSettings extends javax.swing.JDialog {
     if (idx != -1) l6sameidx.setSelectedIndex(idx); else l6sameidx.setSelectedIndex(0);
 
     downloadPath.setText(Settings.current.downloadPath);
-    ringtone.setText(Settings.current.ringtone);
+
+    inRingtone.addItem("Standard Ring");
+    inRingtone.addItem("North America Backtone");
+    inRingtone.addItem("Europe Backtone");
+    if (Settings.current.inRingtone.equals("*RING")) {
+      inRingtone.setSelectedIndex(0);
+    } else if (Settings.current.inRingtone.equals("*NA")) {
+      inRingtone.setSelectedIndex(1);
+    } else if (Settings.current.inRingtone.equals("*UK")) {
+      inRingtone.setSelectedIndex(2);
+    } else {
+      inRingtone.addItem(Settings.current.inRingtone);
+      inRingtone.setSelectedIndex(3);
+    }
+
+    outRingtone.addItem("Standard Ring");
+    outRingtone.addItem("North America Backtone");
+    outRingtone.addItem("Europe Backtone");
+    if (Settings.current.outRingtone.equals("*RING")) {
+      outRingtone.setSelectedIndex(0);
+    } else if (Settings.current.outRingtone.equals("*NA")) {
+      outRingtone.setSelectedIndex(1);
+    } else if (Settings.current.outRingtone.equals("*UK")) {
+      outRingtone.setSelectedIndex(2);
+    } else {
+      outRingtone.addItem(Settings.current.outRingtone);
+      outRingtone.setSelectedIndex(3);
+    }
+
     dndCodeOn.setText(Settings.current.dndCodeOn);
     dndCodeOff.setText(Settings.current.dndCodeOff);
 
@@ -2752,7 +2853,18 @@ public class EditSettings extends javax.swing.JDialog {
     if (l6same.isSelected()) Settings.current.lines[5].same = l6sameidx.getSelectedIndex(); else Settings.current.lines[5].same = -1;
 
     Settings.current.downloadPath = downloadPath.getText();
-    Settings.current.ringtone = ringtone.getText();
+    switch (inRingtone.getSelectedIndex()) {
+      case 0: Settings.current.inRingtone = "*RING"; break;
+      case 1: Settings.current.inRingtone = "*NA"; break;
+      case 2: Settings.current.inRingtone = "*UK"; break;
+      case 3: Settings.current.inRingtone = (String)inRingtone.getSelectedItem(); break;
+    }
+    switch (outRingtone.getSelectedIndex()) {
+      case 0: Settings.current.outRingtone = "*RING"; break;
+      case 1: Settings.current.outRingtone = "*NA"; break;
+      case 2: Settings.current.outRingtone = "*UK"; break;
+      case 3: Settings.current.outRingtone = (String)outRingtone.getSelectedItem(); break;
+    }
     Settings.current.dndCodeOn = dndCodeOn.getText();
     Settings.current.dndCodeOff = dndCodeOff.getText();
 
@@ -2834,19 +2946,42 @@ public class EditSettings extends javax.swing.JDialog {
     downloadPath.setText(chooser.getSelectedFile().toString().replaceAll("\\\\", "/"));
   }
 
-  private void selectRingtoneFilename() {
+  private void selectInRingtoneFilename() {
     JFileChooser chooser = new JFileChooser();
     chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
     chooser.setMultiSelectionEnabled(false);
     chooser.setCurrentDirectory(new File(JF.getUserPath()));
+    chooser.setFileFilter(new FileNameExtensionFilter("WAV", "wav"));
     if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
-    ringtone.setText(chooser.getSelectedFile().toString().replaceAll("\\\\", "/"));
+    String fn = chooser.getSelectedFile().toString().replaceAll("\\\\", "/");
+    if (inRingtone.getItemCount() == 4) {
+      inRingtone.removeItemAt(3);
+    }
+    inRingtone.addItem(fn);
+    inRingtone.setSelectedIndex(3);
   }
+
+  private void selectOutRingtoneFilename() {
+    JFileChooser chooser = new JFileChooser();
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    chooser.setMultiSelectionEnabled(false);
+    chooser.setCurrentDirectory(new File(JF.getUserPath()));
+    chooser.setFileFilter(new FileNameExtensionFilter("WAV", "wav"));
+    if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+    String fn = chooser.getSelectedFile().toString().replaceAll("\\\\", "/");
+    if (outRingtone.getItemCount() == 4) {
+      outRingtone.removeItemAt(3);
+    }
+    outRingtone.addItem(fn);
+    outRingtone.setSelectedIndex(3);
+  }
+
   private void setPosition() {
     Dimension d = getSize();
     Rectangle s = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
     setLocation(s.width/2 - d.width/2, s.height/2 - d.height/2);
   }
+
   private String getAudioCodecs() {
     int cnt = enabledAudioCodecsList.getSize();
     if (cnt == 0) return null;

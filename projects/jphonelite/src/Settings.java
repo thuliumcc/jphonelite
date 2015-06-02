@@ -55,7 +55,6 @@ public class Settings {
   public String videoPosition = "<default>";
   public int videoFPS = 5;
   public boolean usePublish = false;
-  public String ringtone = JF.getUserPath() + "/ringtone.wav";
   public boolean speakerMode = false;
   public int speakerThreshold = 1000;  //0-32k
   public int speakerDelay = 250;  //ms
@@ -79,6 +78,7 @@ public class Settings {
   public String natHost = "", natUser = "", natPass = "";
   public boolean rport = true;
   public boolean received = true;
+  public String inRingtone = "*RING", outRingtone = "*NA";
 
   //static = do not save these settings
   public static boolean aa;

@@ -3,7 +3,6 @@ jPhoneLite consists of a few JAR files.
 It is best to compile from the command prompt using ANT.
 
 javaforce.jar - download from javaforce.sourceforge.net to get the full source to compile it.
-  jphonelite-src-*.zip only contains relavent source and not enough to create the JAR file
 
 jphonelite.jar - run ant in /jf/projects/jphonelite
 
