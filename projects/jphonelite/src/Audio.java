@@ -4,10 +4,10 @@ import javaforce.*;
 import javaforce.media.*;
 import javaforce.voip.*;
 
-/** Handles all aspects of sound processing (recording, playback, ringing sounds, conference mixing, etc.) */
+/** Handles all aspects of audio processing (recording, playback, ringing sounds, conference mixing, etc.) */
 
-public class Sound {
-  //sound data
+public class Audio {
+  //audio data
   private short silence[] = new short[882];
   private short silence8[] = new short[160];
   private short silence16[] = new short[320];
@@ -20,8 +20,8 @@ public class Sound {
   private short callWaiting[] = new short[882];
   private short data8[] = new short[160];
   private short data16[] = new short[320];
-  private javaforce.media.Sound.Output output;
-  private javaforce.media.Sound.Input input;
+  private AudioOutput output;
+  private AudioInput input;
   private Timer timer;
   private Player player;
   private PhoneLine lines[];
@@ -39,7 +39,7 @@ public class Sound {
   private int speakerDelay = 0;
   private int sampleRate, sampleRate50, sampleRate50x2;
 
-  /** Init sound system.  Sound needs access to the lines and the MeterController to send audio levels back to the panel. */
+  /** Init audio system.  Audio needs access to the lines and the MeterController to send audio levels back to the panel. */
 
   public boolean init(PhoneLine lines[], MeterController mc) {
     this.lines = lines;
@@ -88,8 +88,8 @@ public class Sound {
       }
     }
 
-    output = javaforce.media.Sound.getOutput(Settings.current.nativeSound);
-    input = javaforce.media.Sound.getInput(Settings.current.nativeSound);
+    output = new AudioOutput();
+    input = new AudioInput();
     System.out.println("output=" + output + ",input=" + input);
     output.listDevices();
     input.listDevices();
@@ -356,12 +356,12 @@ public class Sound {
           RTPChannel channel = lines[line].audioRTP.getDefaultChannel();
           int rate = channel.coder.getSampleRate();
           switch (rate) {
-            case 8000:
+            case 8000:  //G729, G711
               if (channel.getSamples(indata8)) {
                 mix(mixed, indata8, 9);
               }
               break;
-            case 16000:
+            case 16000:  //G722
               if (channel.getSamples(indata16)) {
                 mix(mixed, indata16, 9);
               }
@@ -380,7 +380,7 @@ public class Sound {
       if (!read(outdata)) {
         underBufferCount++;
         if (underBufferCount > 10) {  //a few is normal
-          JFLog.log("Sound:mic underbuffer");
+          JFLog.log("Audio:mic underbuffer");
         }
         System.arraycopy(silence, 0, outdata, 0, 882);
       }

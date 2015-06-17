@@ -6,14 +6,14 @@
 import java.io.*;
 import java.util.*;
 import javaforce.*;
-import javaforce.jna.*;
+import javaforce.jni.*;
 import javaforce.media.*;
 import javaforce.voip.*;
 
-public class LocalCamera extends Thread implements FFMPEGIO {
+public class LocalCamera extends Thread implements MediaIO {
   private volatile boolean active = false;
   private volatile boolean main_done = false;
-  private Camera.Input camera;
+  private Camera camera;
   private static Codec codec;
   private static volatile boolean inuse[] = new boolean[6];
   private static PhoneLine lines[];
@@ -66,7 +66,7 @@ public class LocalCamera extends Thread implements FFMPEGIO {
     main_done = false;
     try {
       int[] res = Settings.current.getVideoResolution();
-      camera = Camera.getInput();
+      camera = new Camera();
       //      try { raf = new RandomAccessFile("media_local." + codec.name, "rw"); } catch (Exception e) {}
       if (!camera.init()) {
         JF.showError("Error", "Failed to init camera");
@@ -133,8 +133,8 @@ public class LocalCamera extends Thread implements FFMPEGIO {
           //H263,H263-1998,H263-2000
           px = localImage.getPixels();
           if (encoder == null) {
-            encoder = new FFMPEG.Encoder();
-            encoder.config_gop_size = 5;
+            encoder = new MediaEncoder();
+            encoder.setFramesPerKeyFrame(5);
             if (!encoder.start(this, PhonePanel.vx, PhonePanel.vy, 24, -1, -1, "h263", true, false)) {
               JFLog.log("H263 encoder failed to start");
               encoder.stop();
@@ -142,14 +142,14 @@ public class LocalCamera extends Thread implements FFMPEGIO {
               continue;
             }
           }
-          encoder.add_video(px);
+          encoder.addVideo(px);
           continue;
         }
         if (codec.name.equals("H264")) {
           px = localImage.getPixels();
           if (encoder == null) {
-            encoder = new FFMPEG.Encoder();
-            encoder.config_gop_size = 5;
+            encoder = new MediaEncoder();
+            encoder.setFramesPerKeyFrame(5);
             if (!encoder.start(this, PhonePanel.vx, PhonePanel.vy, 24, -1, -1, "h264", true, false)) {
               JFLog.log("H264 encoder failed to start");
               encoder.stop();
@@ -157,14 +157,14 @@ public class LocalCamera extends Thread implements FFMPEGIO {
               continue;
             }
           }
-          encoder.add_video(px);
+          encoder.addVideo(px);
           continue;
         }
         if (codec.name.equals("VP8")) {
           px = localImage.getPixels();
           if (encoder == null) {
-            encoder = new FFMPEG.Encoder();
-            encoder.config_gop_size = 5;
+            encoder = new MediaEncoder();
+            encoder.setFramesPerKeyFrame(5);
             if (!encoder.start(this, PhonePanel.vx, PhonePanel.vy, 24, -1, -1, "vpx", true, false)) {
               JFLog.log("VP8 encoder failed to start");
               encoder.stop();
@@ -172,7 +172,7 @@ public class LocalCamera extends Thread implements FFMPEGIO {
               continue;
             }
           }
-          encoder.add_video(px);
+          encoder.addVideo(px);
           continue;
         }
         JFLog.log("err:local camera running without a valid codec");
@@ -260,13 +260,13 @@ public class LocalCamera extends Thread implements FFMPEGIO {
   private RTPVP8 rtpVP8 = new RTPVP8();
   private Object lock = new Object();
   private Vector<byte[]> list = new Vector<byte[]>();
-  private FFMPEG.Encoder encoder;
+  private MediaEncoder encoder;
 
-  public int read(FFMPEG.Coder coder, byte[] bytes, int i) {
+  public int read(MediaCoder coder, byte[] bytes) {
     return 0;
   }
 
-  public int write(FFMPEG.Coder coder, byte[] bytes) {
+  public int write(MediaCoder coder, byte[] bytes) {
     int len = bytes.length;
     byte[][] tmp;
     if (codec.name.equals("H263")) {
@@ -320,7 +320,7 @@ public class LocalCamera extends Thread implements FFMPEGIO {
     return len;
   }
 
-  public long seek(FFMPEG.Coder coder, long l, int i) {
+  public long seek(MediaCoder coder, long l, int i) {
     return 0;
   }
 }

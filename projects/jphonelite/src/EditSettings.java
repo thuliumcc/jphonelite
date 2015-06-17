@@ -14,9 +14,7 @@ import javax.swing.*;
 import javaforce.*;
 import javaforce.voip.*;
 import javaforce.media.*;
-import javaforce.jna.*;
 
-import com.sun.jna.*;
 import java.awt.event.KeyEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -53,10 +51,9 @@ public class EditSettings extends javax.swing.JDialog {
     enabled_video_codecs.setModel(enabledVideoCodecsList);
     loadSettings();
     if (!Settings.isLinux && !Settings.isWindows) {
-      useNativeSound.setEnabled(false);
       useNativeVideo.setEnabled(false);
     }
-    bits.setText("Make sure you use the " + (Platform.is64Bit() ? "64" : "32") + "bit Codec Pack.");
+    bits.setText("Make sure you use the " + (JF.is64Bit() ? "64" : "32") + "bit Codec Pack.");
     if (Settings.hasFFMPEG) download.setEnabled(false);
     updateKeyStatus();
   }
@@ -111,9 +108,6 @@ public class EditSettings extends javax.swing.JDialog {
     audioInput = new javax.swing.JComboBox();
     audioOutput = new javax.swing.JComboBox();
     jLabel19 = new javax.swing.JLabel();
-    jPanel12 = new javax.swing.JPanel();
-    useNativeSound = new javax.swing.JRadioButton();
-    useJavaSound = new javax.swing.JRadioButton();
     jPanel15 = new javax.swing.JPanel();
     jScrollPane2 = new javax.swing.JScrollPane();
     disabled_audio_codecs = new javax.swing.JList();
@@ -602,44 +596,6 @@ public class EditSettings extends javax.swing.JDialog {
         .addGap(0, 8, Short.MAX_VALUE))
     );
 
-    jPanel12.setBorder(javax.swing.BorderFactory.createTitledBorder("Sound System"));
-
-    soundGroup.add(useNativeSound);
-    useNativeSound.setText("Use Native (low latency) [Windows / Linux]");
-    useNativeSound.setToolTipText("");
-    useNativeSound.addItemListener(new java.awt.event.ItemListener() {
-      public void itemStateChanged(java.awt.event.ItemEvent evt) {
-        useNativeSoundItemStateChanged(evt);
-      }
-    });
-
-    soundGroup.add(useJavaSound);
-    useJavaSound.setText("Use Java (avg latency)");
-    useJavaSound.addItemListener(new java.awt.event.ItemListener() {
-      public void itemStateChanged(java.awt.event.ItemEvent evt) {
-        useJavaSoundItemStateChanged(evt);
-      }
-    });
-
-    javax.swing.GroupLayout jPanel12Layout = new javax.swing.GroupLayout(jPanel12);
-    jPanel12.setLayout(jPanel12Layout);
-    jPanel12Layout.setHorizontalGroup(
-      jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(jPanel12Layout.createSequentialGroup()
-        .addContainerGap()
-        .addGroup(jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-          .addComponent(useNativeSound)
-          .addComponent(useJavaSound))
-        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-    );
-    jPanel12Layout.setVerticalGroup(
-      jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-      .addGroup(jPanel12Layout.createSequentialGroup()
-        .addComponent(useNativeSound)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(useJavaSound))
-    );
-
     jPanel15.setBorder(javax.swing.BorderFactory.createTitledBorder("Audio Codecs"));
 
     disabled_audio_codecs.setModel(new javax.swing.AbstractListModel() {
@@ -781,7 +737,6 @@ public class EditSettings extends javax.swing.JDialog {
       .addGroup(audioLayout.createSequentialGroup()
         .addContainerGap()
         .addGroup(audioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-          .addComponent(jPanel12, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel15, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel13, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
           .addComponent(jPanel17, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -791,8 +746,6 @@ public class EditSettings extends javax.swing.JDialog {
       audioLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
       .addGroup(audioLayout.createSequentialGroup()
         .addContainerGap()
-        .addComponent(jPanel12, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(jPanel15, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(jPanel13, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2090,17 +2043,13 @@ public class EditSettings extends javax.swing.JDialog {
   }//GEN-LAST:event_remove_video_codecActionPerformed
 
   private void downloadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downloadActionPerformed
-    if (FFMPEG.download()) {
-      if (FFMPEG.init()) {
+    if (MediaCoder.download()) {
+      if (MediaCoder.init()) {
         download.setEnabled(false);
         Settings.hasFFMPEG = true;
       }
     }
   }//GEN-LAST:event_downloadActionPerformed
-
-  private void useNativeSoundItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_useNativeSoundItemStateChanged
-    updateAudio();
-  }//GEN-LAST:event_useNativeSoundItemStateChanged
 
   private void disableVideoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_disableVideoItemStateChanged
     updateVideo();
@@ -2109,10 +2058,6 @@ public class EditSettings extends javax.swing.JDialog {
   private void useNativeVideoItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_useNativeVideoItemStateChanged
     updateVideo();
   }//GEN-LAST:event_useNativeVideoItemStateChanged
-
-  private void useJavaSoundItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_useJavaSoundItemStateChanged
-    updateAudio();
-  }//GEN-LAST:event_useJavaSoundItemStateChanged
 
   private void visitWebSiteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_visitWebSiteActionPerformed
     try {
@@ -2313,7 +2258,6 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JPanel jPanel1;
   private javax.swing.JPanel jPanel10;
   private javax.swing.JPanel jPanel11;
-  private javax.swing.JPanel jPanel12;
   private javax.swing.JPanel jPanel13;
   private javax.swing.JPanel jPanel14;
   private javax.swing.JPanel jPanel15;
@@ -2429,8 +2373,6 @@ public class EditSettings extends javax.swing.JDialog {
   private javax.swing.JTextField speakerThreshold;
   private javax.swing.JTabbedPane tabs;
   private javax.swing.JPanel topology;
-  private javax.swing.JRadioButton useJavaSound;
-  private javax.swing.JRadioButton useNativeSound;
   private javax.swing.JRadioButton useNativeVideo;
   private javax.swing.JCheckBox usePublish;
   private javax.swing.JPanel video;
@@ -2649,8 +2591,6 @@ public class EditSettings extends javax.swing.JDialog {
 //    keepAudioOpen.setSelected(Settings.current.keepAudioOpen);
     smallerFont.setSelected(Settings.current.smallerFont);
     usePublish.setSelected(Settings.current.usePublish);
-    useNativeSound.setSelected(Settings.current.nativeSound);
-    useJavaSound.setSelected(!Settings.current.nativeSound);
     reinvite.setSelected(Settings.current.reinvite);
     autohold.setSelected(Settings.current.autohold);
 //audio codecs
@@ -2855,8 +2795,6 @@ public class EditSettings extends javax.swing.JDialog {
     Settings.current.autohold = autohold.isSelected();
     Settings.current.audioCodecs = getAudioCodecs();
     Settings.current.videoCodecs = getVideoCodecs();
-    if (useNativeSound.isSelected()) Settings.current.nativeSound = true;
-    if (useJavaSound.isSelected()) Settings.current.nativeSound = false;
 
     if (disableVideo.isSelected()) Settings.current.nativeVideo = false;
     if (useNativeVideo.isSelected()) Settings.current.nativeVideo = true;
@@ -2972,7 +2910,7 @@ public class EditSettings extends javax.swing.JDialog {
     return sb.toString();
   }
   private void updateAudio() {
-    javaforce.media.Sound.Output output = javaforce.media.Sound.getOutput(useNativeSound.isSelected());
+    AudioOutput output = new AudioOutput();
     String mixers[] = output.listDevices();
 
     if (Settings.current.audioOutput == null) Settings.current.audioOutput = "";
@@ -2985,7 +2923,7 @@ public class EditSettings extends javax.swing.JDialog {
       }
     }
 
-    javaforce.media.Sound.Input input = javaforce.media.Sound.getInput(useNativeSound.isSelected());
+    AudioInput input = new AudioInput();
     mixers = input.listDevices();
 
     if (Settings.current.audioInput == null) Settings.current.audioInput = "";
@@ -3001,9 +2939,10 @@ public class EditSettings extends javax.swing.JDialog {
   private void updateVideo() {
     String devices[];
     if (useNativeVideo.isSelected()) {
-      Camera.Input camera = Camera.getInput();
-      if (camera != null && camera.init()) {
+      Camera camera = new Camera();
+      if (camera.init()) {
         devices = camera.listDevices();
+        camera.uninit();
       } else {
         devices = new String[] { "<undefined>"};
       }

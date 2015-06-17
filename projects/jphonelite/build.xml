@@ -1,22 +1,17 @@
 <project name="jphonelite" default="jar" basedir=".">
   <description>jphonelite</description>
   <!-- set global properties for this build -->
-  <property name="app" location="jphonelite"/>
+  <property name="app" value="jphonelite"/>
+  <property name="home" location="../.."/>
   <property name="src" location="src"/>
   <property name="build" location="classes"/>
-  <property name="JPHONELITEVERSION" value="1.9.4"/>
+  <property name="version" value="1.9.5"/>
 
-  <target name="depjars">
+  <import file="../../base.xml"/>
+
+  <target name="depjars" depends="depnatives">
     <jar destfile="javaforce.jar">
       <zipfileset src="../../jars/javaforce.jar"/>
-      <manifest>
-        <attribute name="Trusted-Library" value="true"/>
-        <attribute name="Permissions" value="all-permissions"/>
-        <attribute name="Codebase" value="jphonelite.sourceforge.net"/>
-      </manifest>
-    </jar>
-    <jar destfile="jna.jar">
-      <zipfileset src="../../jars/jna.jar"/>
       <manifest>
         <attribute name="Trusted-Library" value="true"/>
         <attribute name="Permissions" value="all-permissions"/>
@@ -41,7 +36,6 @@
     <javac srcdir="${src}" destdir="${build}" deprecation="true" target="1.6" source="1.6" debug="true" includeantruntime="false">
 <!--      <compilerarg value="-Xlint:unchecked"/>  -->  <!-- generates lots of annoying warnings -->
       <classpath path="javaforce.jar"/>
-      <classpath path="jna.jar"/>
       <classpath path="bouncycastle.jar"/>
     </javac>
   </target>
@@ -62,67 +56,17 @@
     </jar>
   </target>
 
-  <available property="keyexists" file="keystore.key"/>
-
-  <target name="genkey" unless="keyexists" description="generate keys">
-    <!-- create key -->
-    <genkey alias="jphonelite" storepass="password" keystore="keystore.key" keyalg="RSA" dname="CN=jphonelite.sourceforge.net, OU=jphonelite, O=JavaForce, C=CA" validity="3650"/>
-    <!-- create csr -->
-    <exec command="keytool -certreq -alias jphonelite -keystore keystore.key -file jphonelite.csr -storepass password"/>
-    <copy file="jphonelite.csr" todir="../../keys"/>
-  </target>
-
-  <target name="importcert">
-    <copy file="../../keys/javaforce.crt" todir="."/>
-    <exec command="keytool -import -alias root -file javaforce.crt -keystore keystore.key -storepass password -noprompt"/>
-    <copy file="../../keys/jphonelite.crt" todir="."/>
-    <exec command="keytool -import -alias jphonelite -file jphonelite.crt -keystore keystore.key -storepass password"/>
-  </target>
-
-  <target name="sign-jar" depends="jar,depjars" description="sign jar file">
-    <signjar jar="jphonelite.jar" alias="jphonelite" storepass="password" keystore="keystore.key" signedjar="jphonelite-signed.jar"/>
-    <signjar jar="javaforce.jar" alias="jphonelite" storepass="password" keystore="keystore.key" signedjar="javaforce-signed.jar"/>
-    <signjar jar="jna.jar" alias="jphonelite" storepass="password" keystore="keystore.key" signedjar="jna-signed.jar"/>
-    <signjar jar="bouncycastle.jar" alias="jphonelite" storepass="password" keystore="keystore.key" signedjar="bouncycastle-signed.jar"/>
-  </target>
-
-  <!-- Requires WiX toolset in PATH -->
-  <target name="msi" depends="jar" description="create windows installer">
-    <exec command="i686-w64-mingw32-windres -O coff -i jphonelite.rc -o jphonelite.res"/>
-    <exec command="i686-w64-mingw32-gcc loader.c -I../../include -Wl,-subsystem,windows jphonelite.res -o jphonelite32.exe"/>
-    <exec command="x86_64-w64-mingw32-windres -O coff -i jphonelite.rc -o jphonelite.res"/>
-    <exec command="x86_64-w64-mingw32-gcc loader.c -I../../include -Wl,-subsystem,windows jphonelite.res -o jphonelite64.exe"/>
-    <exec command="candle -o wix.obj wix.xml"/>
-    <exec command="light -o jphonelite-${JPHONELITEVERSION}.msi wix.obj"/>
-    <move file="jphonelite-${JPHONELITEVERSION}.msi" todir="/home/pquiring/zips"/>
-  </target>
-
   <!-- sudo ant install -->
   <target name="install" description="install files">
-    <exec command="gcc loader.c -I../../include -o ${app} -ldl -lpthread"/>
-    <move file="${app}" todir="/usr/bin"/>
+    <elf/>
     <copy file="jphonelite.jar" todir="/usr/share/java"/>
     <copy file="jphonelite.desktop" todir="/usr/share/applications"/>
     <copy file="jphonelite.png" todir="/usr/share/icons/hicolor/48x48/apps"/>
     <copy file="jphonelite.html" todir="/usr/share/jhelp"/>
   </target>
 
-  <target name="deb" description="create deb package">
-    <exec executable="jdeb">
-      <arg value="jphonelite-${JPHONELITEVERSION}_all.deb"/>
-    </exec>
-    <copy file="jphonelite-${JPHONELITEVERSION}_all.deb" todir="../../repo/ubuntu"/>
-  </target>
-
-  <target name="rpm" description="create rpm package">
-    <exec executable="jrpm">
-      <arg value="jphonelite.spec"/>
-    </exec>
-    <copy file="jphonelite-${JPHONELITEVERSION}-1.noarch.rpm" todir="../../repo/fedora"/>
-  </target>
-
-  <target name="release-bin" depends="sign-jar" description="create release zip file">
-    <zip destfile="jphonelite-${JPHONELITEVERSION}.zip">
+  <target name="release-bin" description="create release zip file">
+    <zip destfile="jphonelite-${version}.zip">
       <fileset dir="..">
         <include name="jphonelite/*.jar"/>
         <include name="jphonelite/*.html"/>
@@ -132,26 +76,28 @@
         <include name="jphonelite/readme.txt"/>
         <include name="jphonelite/jphonelite"/>
         <include name="jphonelite/run.*"/>
+        <include name="jphonelite/jfnative*"/>
       </fileset>
       <fileset dir="../.." includes="license.txt"/>
     </zip>
-    <move file="jphonelite-${JPHONELITEVERSION}.zip" todir="/home/pquiring/zips"/>
+    <move file="jphonelite-${version}.zip" todir="${home}/release"/>
   </target>
 
   <target name="release-src" depends="" description="create release zip file">
-    <zip destfile="jphonelite-src-${JPHONELITEVERSION}.zip">
+    <zip destfile="jphonelite-src-${version}.zip">
       <fileset dir="../../..">
+        <include name="jf/license.txt"/>
+        <include name="jf/base.xml"/>
+
         <include name="jf/keys/readme.txt"/>
         <include name="jf/keys/build.xml"/>
-        <include name="jf/license.txt"/>
+
         <include name="jf/jars/javaforce.jar"/>
-        <include name="jf/jars/jna.jar"/>
         <include name="jf/jars/bouncycastle.jar"/>
 
         <include name="jf/projects/jphonelite/src/*.java"/>
         <include name="jf/projects/jphonelite/src/*.form"/>
-        <include name="jf/projects/jphonelite/*.c"/>
-        <include name="jf/projects/jphonelite/*.rc"/>
+        <include name="jf/projects/jphonelite/*.cfg"/>
         <include name="jf/projects/jphonelite/*.js"/>
         <include name="jf/projects/jphonelite/*.form"/>
         <include name="jf/projects/jphonelite/*.jnlp"/>
@@ -167,10 +113,10 @@
         <include name="jf/projects/jphonelite/jphonelite"/>
         <include name="jf/projects/jphonelite/nbproject/*.xml"/>
 
-        <include name="jf/include/*.h"/>
+        <include name="jf/stubs/*"/>
       </fileset>
     </zip>
-    <move file="jphonelite-src-${JPHONELITEVERSION}.zip" todir="/home/pquiring/zips"/>
+    <move file="jphonelite-src-${version}.zip" todir="${home}/release"/>
   </target>
 
   <target name="javadoc" description="generate java documentation">
